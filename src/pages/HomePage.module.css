@@ -1,0 +1,122 @@
+/* src/pages/HomePage.module.css */
+
+.homePageContainer {
+  display: flex; 
+  flex-direction: column;
+  justify-content: center; 
+  align-items: center;
+  min-height: calc(100vh - 75px); /* Adjust based on actual navbar height */
+  padding: 20px; 
+  background-color: var(--bg-color, #121212);
+  overflow-x: hidden; /* Prevent horizontal scroll if tagline momentarily gets too wide during resize */
+}
+
+.heroSection {
+  width: 100%;
+  /* max-width: 800px; */ /* We can remove this or make it larger if the tagline dictates width */
+  max-width: 90vw; /* Max width as a percentage of viewport width, adjust as needed */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.tagline {
+  font-family: 'Poppins', sans-serif;
+  /* Responsive font size: Min 2.2rem, Preferred 7vw (7% of viewport width), Max 4.2rem */
+  font-size: clamp(2.2rem, 7vw, 4.2rem); 
+  color: var(--text-color);
+  margin-bottom: 50px; 
+  font-weight: 600;
+  line-height: 1.2; /* Adjusted for better spacing with potentially large fonts */
+  letter-spacing: -1.5px; 
+  white-space: nowrap; /* Try to keep it on one line */
+  overflow: hidden; /* Hide overflow if it somehow still exceeds due to odd font rendering */
+  text-overflow: ellipsis; /* Show ... if it's still too long and hidden (fallback) */
+}
+
+.searchForm {
+  display: flex;
+  width: 100%;
+  max-width: 700px; /* Keep search form constrained for better usability */
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border-color);
+  border-radius: 16px; 
+  overflow: hidden;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+}
+
+/* ... (searchInput, searchButton, message, errorMessage, resultsContainer, etc. - no changes from previous good version) ... */
+.searchInput {
+  flex-grow: 1;
+  background-color: transparent;
+  border: none;
+  padding: 22px 30px; 
+  font-size: 1.25rem; 
+  font-family: 'Inter', sans-serif; 
+  outline: none;
+  color: var(--text-color);
+}
+
+.searchInput::placeholder {
+  color: var(--text-muted-color);
+  opacity: 0.7;
+  font-weight: 300; 
+}
+
+.searchButton {
+  border: none;
+  background: linear-gradient(90deg, hsla(217, 100%, 50%, 1) 0%, hsla(186, 100%, 69%, 1) 100%); 
+  color: white;
+  padding: 22px 40px; 
+  font-size: 1.2rem;
+  font-family: 'Poppins', sans-serif; 
+  cursor: pointer;
+  transition: opacity 0.2s ease;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+
+.searchButton:hover {
+  opacity: 0.85; 
+}
+
+.searchButton:disabled {
+  background: var(--secondary-color); 
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.message {
+  margin-top: 30px; 
+  padding: 12px 18px;
+  border-radius: 6px;
+  text-align: center;
+  width: 100%;
+  max-width: 700px;
+  font-size: 1rem;
+  background-color: var(--bg-surface); 
+  border: 1px solid var(--border-color);
+}
+
+.errorMessage {
+  color: #f8d7da; 
+  border-color: var(--danger-color);
+}
+
+.resultsContainer {
+  width: 100%;
+  max-width: 1100px;
+  margin-top: 60px; 
+  padding: 0 20px;
+}
+
+.resultsContainer h3 {
+  font-size: 1.8rem; 
+  color: var(--text-color);
+  margin-bottom: 25px;
+  text-align: left;
+  padding-left: 0; 
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: 10px;
+}

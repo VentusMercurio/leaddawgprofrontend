@@ -1,0 +1,53 @@
+/* src/index.css */
+:root {
+  font-family: 'Inter', system-ui, Avenir, Helvetica, Arial, sans-serif; /* Inter is a great modern choice */
+  line-height: 1.6;
+  font-weight: 400;
+
+  color-scheme: dark; /* Tell the browser we prefer dark mode */
+  color: rgba(255, 255, 255, 0.87); /* Default text color for dark mode */
+  background-color: #121212; /* Primary dark background */
+
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+
+  --primary-color: #007bff; /* A vibrant blue for accents */
+  --primary-hover-color: #0056b3;
+  --secondary-color: #6c757d; /* Muted secondary for some elements */
+  --accent-color: #ffc107; /* Yellow for copy pitch, etc. */
+  --accent-hover-color: #e0a800;
+  --success-color: #28a745;
+  --danger-color: #dc3545;
+  --text-color: rgba(255, 255, 255, 0.87);
+  --text-muted-color: rgba(255, 255, 255, 0.6);
+  --bg-surface: #1e1e1e; /* Slightly lighter dark for surfaces like cards/modals */
+  --border-color: #333333; /* Darker border color */
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background-color: var(--bg-color, #121212); /* Use var for global bg */
+  color: var(--text-color);
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+a {
+  font-weight: 500;
+  color: var(--primary-color);
+  text-decoration: none; /* Remove underline by default */
+}
+a:hover {
+  color: var(--primary-hover-color);
+  text-decoration: underline; /* Add underline on hover for clarity */
+}
+
+h1, h2, h3, h4, h5, h6 {
+  color: rgba(255, 255, 255, 0.95); /* Slightly brighter for headings */
+  margin-top: 0;
+}
