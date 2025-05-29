@@ -1,0 +1,157 @@
+/* src/components/LeadDetailModal.module.css */
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.75); /* Darker overlay */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1050; /* Higher than navbar */
+  padding: 20px;
+}
+
+.modalContent {
+  background-color: var(--bg-surface, #1e1e1e);
+  padding: 25px 30px;
+  border-radius: 12px;
+  width: 100%;
+  max-width: 600px;
+  max-height: 90vh; /* Max height with scroll */
+  overflow-y: auto; /* Scroll for content overflow */
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+  border: 1px solid var(--border-color);
+  display: flex;
+  flex-direction: column;
+}
+
+.modalHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 15px;
+  margin-bottom: 20px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.modalHeader h3 {
+  margin: 0;
+  font-size: 1.6rem;
+  font-weight: 600;
+  font-family: 'Poppins', sans-serif;
+  color: rgba(255,255,255,0.95);
+}
+
+.closeButton {
+  background: none;
+  border: none;
+  font-size: 2rem;
+  font-weight: 300;
+  color: var(--text-muted-color);
+  cursor: pointer;
+  padding: 0;
+  line-height: 1;
+}
+.closeButton:hover {
+  color: var(--text-color);
+}
+
+.modalBody {
+  margin-bottom: 25px;
+}
+
+.detailSection {
+  margin-bottom: 18px;
+}
+
+.detailSection strong {
+  display: block;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-muted-color);
+  margin-bottom: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.detailSection p {
+  margin: 0 0 5px 0;
+  font-size: 1rem;
+  line-height: 1.5;
+  color: var(--text-color);
+}
+.detailSection p a {
+    color: var(--primary-color);
+    word-break: break-all; /* Break long URLs */
+}
+.detailSection p a:hover {
+    text-decoration: underline;
+}
+
+
+.statusSelectModal,
+.notesTextarea {
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 6px;
+  border: 1px solid #444;
+  background-color: #2a2a2e;
+  color: var(--text-color);
+  font-size: 0.95rem;
+  box-sizing: border-box;
+}
+.statusSelectModal {
+    min-width: 200px; /* Good width for status dropdown */
+}
+.notesTextarea {
+  min-height: 100px;
+  resize: vertical;
+  font-family: inherit; /* Ensure it uses app font */
+}
+.statusSelectModal:focus,
+.notesTextarea:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+}
+
+.modalFooter {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  padding-top: 20px;
+  border-top: 1px solid var(--border-color);
+}
+
+.modalButton {
+  padding: 10px 20px;
+  font-size: 0.95rem;
+  font-weight: 500;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.2s ease, opacity 0.2s ease;
+}
+.modalButton:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+}
+
+.saveButton {
+  background-color: var(--primary-color);
+  color: white;
+}
+.saveButton:hover:not(:disabled) {
+  background-color: var(--primary-hover-color);
+}
+
+.deleteButton {
+  background-color: transparent;
+  color: var(--danger-color);
+  border: 1px solid var(--danger-color);
+}
+.deleteButton:hover:not(:disabled) {
+  background-color: rgba(220, 53, 69, 0.1);
+}
