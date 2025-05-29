@@ -5,118 +5,132 @@
   flex-direction: column;
   justify-content: center; 
   align-items: center;
-  min-height: calc(100vh - 75px); /* Adjust based on actual navbar height */
+  min-height: calc(100vh - 75px);
   padding: 20px; 
-  background-color: var(--bg-color, #121212);
-  overflow-x: hidden; /* Prevent horizontal scroll if tagline momentarily gets too wide during resize */
+  background-color: #0A0A10; /* Even deeper, slightly blue-tinted black */
+  position: relative; 
+  overflow: hidden; 
 }
 
-.heroSection {
-  width: 100%;
-  /* max-width: 800px; */ /* We can remove this or make it larger if the tagline dictates width */
-  max-width: 90vw; /* Max width as a percentage of viewport width, adjust as needed */
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
+/* --- STREAM EFFECT BACKGROUND --- */
+.homePageContainer::before,
+.homePageContainer::after {
+  content: '';
+  position: absolute;
+  left: 50%; /* Start them centered horizontally for easier transform origin */
+  top: 50%;  /* Start them centered vertically */
+  opacity: 0.3; /* Start with a moderate opacity for visibility */
+  z-index: 0; 
+  will-change: transform, opacity;
+  transform-origin: center center; /* Ensure rotations/scales are from the center */
 }
 
+.homePageContainer::before { /* First light stream */
+  width: 200%; /* Very wide to simulate a long stream */
+  height: 150px; /* Relatively thin, like a ribbon */
+  background: linear-gradient(
+    to right, 
+    hsla(190, 100%, 70%, 0),     /* Transparent edge */
+    hsla(190, 100%, 65%, 0.4) 40%, /* Cyan core, slightly more opaque */
+    hsla(190, 100%, 65%, 0.4) 60%,
+    hsla(190, 100%, 70%, 0)      /* Transparent edge */
+  );
+  filter: blur(25px); /* Less blur to keep it somewhat defined */
+  border-radius: 75px; /* Rounded ends for the ribbon */
+  animation: streamFlowOne 25s infinite linear;
+  /* Initial transform to position and rotate it off-center */
+  transform: translate(-50%, -150%) rotate(-35deg) skewX(-20deg);
+}
+
+.homePageContainer::after { /* Second light stream, different properties */
+  width: 250%;
+  height: 100px; 
+  background: linear-gradient(
+    to right, 
+    hsla(220, 100%, 75%, 0),    /* Transparent edge */
+    hsla(220, 100%, 70%, 0.3) 45%, /* Blue core */
+    hsla(220, 100%, 70%, 0.3) 55%,
+    hsla(220, 100%, 75%, 0)     /* Transparent edge */
+  );
+  filter: blur(35px); /* Slightly more blur for depth */
+  border-radius: 50px;
+  animation: streamFlowTwo 35s infinite linear;
+  transform: translate(-50%, 100%) rotate(25deg) skewX(15deg);
+  animation-delay: -7s; /* Offset start */
+}
+
+@keyframes streamFlowOne {
+  0% {
+    transform: translate(-50%, -150%) rotate(-35deg) skewX(-20deg) translateX(-100vw);
+    opacity: 0;
+  }
+  20% { /* Fade in */
+    opacity: 0.25;
+  }
+  80% { /* Fade out */
+    opacity: 0.25;
+  }
+  100% {
+    transform: translate(-50%, 50vh) rotate(-25deg) skewX(-20deg) translateX(100vw); /* Move across and slightly down */
+    opacity: 0;
+  }
+}
+
+@keyframes streamFlowTwo {
+  0% {
+    transform: translate(-50%, 100%) rotate(25deg) skewX(15deg) translateX(100vw); /* Start from other side */
+    opacity: 0;
+  }
+  20% {
+    opacity: 0.2;
+  }
+  80% {
+    opacity: 0.2;
+  }
+  100% {
+    transform: translate(-50%, -100vh) rotate(15deg) skewX(15deg) translateX(-100vw); /* Move across and slightly up */
+    opacity: 0;
+  }
+}
+/* --- END STREAM EFFECT BACKGROUND --- */
+
+
+/* --- Content Styles (ensure they are on top with z-index: 1) --- */
+.heroSection, .tagline, .searchForm, .message, .resultsContainer {
+  position: relative; 
+  z-index: 1;       
+}
+/* ... (Keep .heroSection, .tagline, .searchForm, .searchInput, .searchButton styles as they were in the version you liked) ... */
+/* Ensure .tagline has a good contrast against potential light streams */
 .tagline {
-  font-family: 'Poppins', sans-serif;
-  /* Responsive font size: Min 2.2rem, Preferred 7vw (7% of viewport width), Max 4.2rem */
-  font-size: clamp(2.2rem, 7vw, 4.2rem); 
-  color: var(--text-color);
-  margin-bottom: 50px; 
-  font-weight: 600;
-  line-height: 1.2; /* Adjusted for better spacing with potentially large fonts */
-  letter-spacing: -1.5px; 
-  white-space: nowrap; /* Try to keep it on one line */
-  overflow: hidden; /* Hide overflow if it somehow still exceeds due to odd font rendering */
-  text-overflow: ellipsis; /* Show ... if it's still too long and hidden (fallback) */
+  font-family: 'EB Garamond', 'Georgia', serif;
+  font-size: clamp(2.8rem, 8vw, 5rem); 
+  color: rgba(255, 255, 255, 0.95); /* Keep it bright */
+  margin-bottom: 60px; 
+  font-weight: 500; 
+  line-height: 1.2; 
+  letter-spacing: 0.5px; 
+  white-space: nowrap; 
+  text-shadow: 0 1px 3px rgba(0,0,0,0.5), 0 0 25px rgba(150, 180, 255, 0.2); /* Add a stronger dark shadow for pop */
 }
 
-.searchForm {
-  display: flex;
-  width: 100%;
-  max-width: 700px; /* Keep search form constrained for better usability */
-  background-color: var(--bg-surface);
-  border: 1px solid var(--border-color);
-  border-radius: 16px; 
-  overflow: hidden;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+.searchForm { 
+  display: flex; width: 100%; max-width: 700px; 
+  background-color: rgba(20, 22, 25, 0.8); /* Darker, less transparent surface */
+  border: 1px solid rgba(255, 255, 255, 0.1); 
+  border-radius: 16px; overflow: hidden;
+  box-shadow: 0 12px 45px rgba(0, 0, 0, 0.6); 
+  backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
 }
 
-/* ... (searchInput, searchButton, message, errorMessage, resultsContainer, etc. - no changes from previous good version) ... */
-.searchInput {
-  flex-grow: 1;
-  background-color: transparent;
-  border: none;
-  padding: 22px 30px; 
-  font-size: 1.25rem; 
-  font-family: 'Inter', sans-serif; 
-  outline: none;
-  color: var(--text-color);
-}
+/* ... (searchInput, searchButton, message, errorMessage, resultsContainer - ensure they are readable against the new effect) ... */
+.searchInput { flex-grow: 1; background-color: transparent; border: none; padding: 22px 30px; font-size: 1.25rem; font-family: 'Inter', sans-serif; outline: none; color: var(--text-color); }
+.searchInput::placeholder { color: var(--text-muted-color); opacity: 0.6; font-weight: 300; }
+.searchButton { border: none; background: linear-gradient(90deg, hsla(217, 100%, 55%, 1) 0%, hsla(190, 100%, 60%, 1) 100%); color: white; padding: 22px 40px; font-size: 1.15rem; font-family: 'Poppins', sans-serif; cursor: pointer; transition: opacity 0.2s ease, transform 0.2s ease; font-weight: 600; letter-spacing: 0.5px; }
+.searchButton:hover { opacity: 0.9; transform: scale(1.03); }
+.searchButton:disabled { background: var(--secondary-color); opacity: 0.7; cursor: not-allowed; transform: none; }
 
-.searchInput::placeholder {
-  color: var(--text-muted-color);
-  opacity: 0.7;
-  font-weight: 300; 
-}
-
-.searchButton {
-  border: none;
-  background: linear-gradient(90deg, hsla(217, 100%, 50%, 1) 0%, hsla(186, 100%, 69%, 1) 100%); 
-  color: white;
-  padding: 22px 40px; 
-  font-size: 1.2rem;
-  font-family: 'Poppins', sans-serif; 
-  cursor: pointer;
-  transition: opacity 0.2s ease;
-  font-weight: 600;
-  letter-spacing: 0.5px;
-}
-
-.searchButton:hover {
-  opacity: 0.85; 
-}
-
-.searchButton:disabled {
-  background: var(--secondary-color); 
-  opacity: 0.7;
-  cursor: not-allowed;
-}
-
-.message {
-  margin-top: 30px; 
-  padding: 12px 18px;
-  border-radius: 6px;
-  text-align: center;
-  width: 100%;
-  max-width: 700px;
-  font-size: 1rem;
-  background-color: var(--bg-surface); 
-  border: 1px solid var(--border-color);
-}
-
-.errorMessage {
-  color: #f8d7da; 
-  border-color: var(--danger-color);
-}
-
-.resultsContainer {
-  width: 100%;
-  max-width: 1100px;
-  margin-top: 60px; 
-  padding: 0 20px;
-}
-
-.resultsContainer h3 {
-  font-size: 1.8rem; 
-  color: var(--text-color);
-  margin-bottom: 25px;
-  text-align: left;
-  padding-left: 0; 
-  border-bottom: 1px solid var(--border-color);
-  padding-bottom: 10px;
-}
+.message { margin-top: 30px; padding: 12px 18px; border-radius: 6px; text-align: center; width: 100%; max-width: 700px; font-size: 1rem; background-color: rgba(30, 30, 30, 0.85); border: 1px solid rgba(255, 255, 255, 0.1); backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px); }
+.errorMessage { color: #ffacac; border-color: rgba(220, 53, 69, 0.5); background-color: rgba(220, 53, 69, 0.2); } /* Adjusted error bg */
+.resultsContainer { width: 100%; max-width: 1100px; margin-top: 60px; padding: 0 20px; }
+.resultsContainer h3 { font-size: 1.8rem; color: var(--text-color); margin-bottom: 25px; text-align: left; padding-left: 0; border-bottom: 1px solid var(--border-color); padding-bottom: 10px; }
