@@ -212,114 +212,110 @@
   overflow-y: auto; /* Add scroll if content overflows max-height */
 }
 
-/* --- Lead Card Styles (Update image related parts) --- */
+/* --- Lead Card Styles --- */
 .featuredLeadCard, .listLeadCard {
   background-color: var(--bg-surface);
-  border-radius: 12px;
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+  border-radius: 10px; /* Slightly softer radius */
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
   overflow: hidden; 
   display: flex;
-  flex-direction: column;
   color: var(--text-color);
-  transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+  transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out, border-color 0.2s ease-in-out;
+  border: 1px solid transparent; /* Start with transparent border */
 }
 
-.featuredLeadCard:hover, .listLeadCard:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
+.featuredLeadCard { 
+  flex-direction: column; 
+  border-color: rgba(255,255,255,0.1); /* Give featured card a subtle border */
 }
 
-/* Styles for the image container in the featured card */
-.cardImageContainer { /* New class for the div wrapping the img */
-  width: 100%;
-  height: 220px; /* Or desired height for featured image */
-  overflow: hidden; /* Ensure image doesn't break out of rounded corners if card is rounded */
-  background-color: #282c34; /* Dark placeholder color if image is loading/missing */
-}
-
-.cardImage { /* Styles for the actual <img> tag */
-  width: 100%;
-  height: 100%;
-  object-fit: cover; /* Scales the image to maintain aspect ratio while filling the element’s entire content box */
-  display: block; /* Remove extra space below image */
-}
-
-
-.listLeadCard {
+.listLeadCard { 
   flex-direction: row; 
-  align-items: center; 
-  /* If you want small images for list items in the future:
-  .listLeadCard .cardImageContainer { 
-    width: 100px; height: 70px; flex-shrink: 0; margin-right: 15px; border-radius: 8px; 
-  }
-  .listLeadCard .cardImage { border-radius: 8px; }
-  */
+  align-items: center; /* Vertically center content in list card */
+  padding: 10px; 
+  cursor: pointer; 
 }
 
-.cardContent {
-  padding: 20px;
-  flex-grow: 1; 
+.featuredLeadCard:hover { /* Keep featured hover subtle */
+  transform: translateY(-3px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+}
+.listLeadCard:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.3);
+  border-color: var(--accent-color); 
 }
 
-.featuredLeadCard .cardContent {
-  padding: 25px;
+/* Styles for the image container */
+.cardImageContainer { /* For featured card */
+  width: 100%;
+  height: 240px; /* Adjust as needed */
+  overflow: hidden; 
+  background-color: #22252a; /* Darker placeholder */
+}
+.listCardImageContainer { /* For list items */
+  width: 100px; 
+  height: 75px;  
+  flex-shrink: 0; 
+  margin-right: 12px;
+  border-radius: 6px;
+  overflow: hidden;
+  background-color: #22252a;
+}
+.cardImage { 
+  width: 100%; height: 100%; object-fit: cover; display: block; 
 }
 
-.cardName {
-  font-size: 1.4rem;
-  font-weight: 600;
+/* Card Content Styles */
+.cardContent { padding: 15px; flex-grow: 1; display: flex; flex-direction: column; }
+.featuredLeadCard .cardContent { padding: 20px 25px; }
+.listLeadCard .cardContent { padding: 0; /* No extra padding if image is present */ }
+
+.cardName { font-weight: 600; margin-bottom: 6px; color: rgba(255, 255, 255, 0.95); }
+.featuredCardName { font-size: 1.6rem; margin-bottom: 10px; } /* Used in LeadCard JSX */
+.listCardName { font-size: 0.95rem; margin-bottom: 3px; line-height: 1.3; } /* Used in LeadCard JSX */
+
+.cardAddress { font-size: 0.9rem; color: var(--text-muted-color); margin-bottom: 12px; line-height: 1.4; }
+.featuredCardAddress { /* Used in LeadCard JSX */
+    /* Keep styles from before or adjust */
+}
+.listCardAddress { /* Used in LeadCard JSX */
+  font-size: 0.75rem; 
+  color: rgba(255,255,255,0.5);
+  line-height: 1.3;
+  display: -webkit-box; 
+  -webkit-line-clamp: 2; 
+  -webkit-box-orient: vertical;  
+  overflow: hidden;
+  margin-bottom: 0; /* No margin if it's the last text item */
+}
+
+.featuredCardDetail { /* For phone, website in featured card */
+  font-size: 0.9rem;
+  color: var(--text-muted-color);
   margin-bottom: 8px;
-  color: rgba(255, 255, 255, 0.95);
 }
-
-.listLeadCard .cardName {
-  font-size: 1.1rem;
+.websiteLink { /* Class for the 'Visit Website' link */
+  color: var(--primary-color);
   font-weight: 500;
 }
+.websiteLink:hover { text-decoration: underline; }
 
-.cardAddress {
-  font-size: 0.9rem;
-  color: var(--text-muted-color);
-  margin-bottom: 12px;
-  line-height: 1.4;
-}
 
-.cardPhone, .cardWebsite {
-  font-size: 0.9rem;
-  color: var(--text-muted-color);
-  margin-bottom: 5px;
-}
-.cardWebsite a { color: var(--primary-color); }
-.cardWebsite a:hover { text-decoration: underline; }
+.cardActions { margin-top: auto; padding-top: 15px; border-top: 1px solid var(--border-color); display: flex; }
+/* Remove .listLeadCard .cardActions if button is removed from list items */
 
-.cardActions {
-  margin-top: auto; /* Push actions to the bottom of the card content */
-  padding-top: 15px;
-  border-top: 1px solid var(--border-color);
-  display: flex;
-  gap: 10px;
+.saveLeadButton { /* Only for featured card now */
+  background-color: var(--accent-color); color: #111; border: none;
+  padding: 10px 20px; /* Made button a bit bigger */
+  border-radius: 8px; font-size: 0.9rem; 
+  font-weight: 600; cursor: pointer; transition: background-color 0.2s ease;
+  /* width: auto; /* Let it size to content */
+  /* white-space: nowrap; */
+  /* overflow: hidden; */
+  /* text-overflow: ellipsis; */
 }
-
-.listLeadCard .cardActions { 
-  margin-top: 10px;
-  padding-top: 10px;
-}
-
-.saveLeadButton { /* Style as desired */
-  background-color: var(--accent-color);
-  color: #111; 
-  border: none;
-  padding: 8px 15px;
-  border-radius: 6px;
-  font-size: 0.85rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background-color 0.2s ease;
-}
-.saveLeadButton:hover {
-  background-color: var(--accent-hover-color);
-}
-
+.saveLeadButton:hover { background-color: var(--accent-hover-color); }
 /* Pro Teaser Styles (no change needed from previous) */.proTeaser {
   margin-top: 40px;
   padding: 25px;
