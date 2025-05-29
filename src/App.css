@@ -44,6 +44,23 @@
   color: var(--primary-color);
   /* border-bottom: 2px solid var(--primary-color); */ /* Optional active indicator */
 }
+/* src/App.css */
+/* ... other navbar styles ... */
+.nav-link-button {
+  background: none;
+  border: none;
+  color: var(--text-muted-color); /* Match nav-link color */
+  cursor: pointer;
+  font-family: inherit; /* Match nav-link font */
+  font-size: 1em; /* Match nav-link font size */
+  font-weight: 500; /* Match nav-link font weight */
+  margin-left: 25px;
+  padding: 8px 0; /* Match nav-link padding */
+  transition: color 0.2s ease;
+}
+.nav-link-button:hover {
+  color: var(--primary-color); /* Match nav-link hover */
+}
 
 .main-app-content {
   /* This can be empty if each page handles its own main padding */

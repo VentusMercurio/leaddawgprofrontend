@@ -1,0 +1,107 @@
+/* src/pages/AuthPage.module.css */
+.authContainer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: calc(100vh - 100px); /* Adjust based on navbar height + some padding */
+  padding: 20px;
+  background-color: var(--bg-color, #121212);
+}
+
+.authBox {
+  background-color: var(--bg-surface, #1e1e1e);
+  padding: 30px 40px;
+  border-radius: 12px;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
+  width: 100%;
+  max-width: 450px;
+  border: 1px solid var(--border-color);
+}
+
+.title {
+  text-align: center;
+  font-size: 1.8rem;
+  font-weight: 600;
+  color: var(--text-color);
+  margin-bottom: 25px;
+  font-family: 'Poppins', sans-serif;
+}
+
+.inputGroup {
+  margin-bottom: 20px;
+}
+
+.inputGroup label {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--text-muted-color);
+}
+
+.inputField {
+  width: 100%;
+  padding: 12px 15px;
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+  background-color: #2a2a2e; /* Slightly lighter input bg */
+  color: var(--text-color);
+  font-size: 1rem;
+  box-sizing: border-box;
+  transition: border-color 0.2s ease;
+}
+
+.inputField:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+}
+
+.submitButton {
+  width: 100%;
+  padding: 14px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: white;
+  background-color: var(--primary-color);
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  margin-top: 10px;
+  font-family: 'Poppins', sans-serif;
+}
+
+.submitButton:hover {
+  background-color: var(--primary-hover-color);
+}
+.submitButton:disabled {
+    background-color: var(--secondary-color);
+    cursor: not-allowed;
+}
+
+.errorMessage {
+  color: #ffacac; /* Lighter red for dark mode */
+  background-color: rgba(220, 53, 69, 0.15);
+  border: 1px solid rgba(220, 53, 69, 0.5);
+  padding: 10px;
+  border-radius: 6px;
+  margin-bottom: 15px;
+  font-size: 0.9em;
+  text-align: center;
+}
+
+.redirectLink {
+  text-align: center;
+  margin-top: 20px;
+  font-size: 0.9em;
+  color: var(--text-muted-color);
+}
+
+.redirectLink a {
+  color: var(--primary-color);
+  font-weight: 500;
+}
+.redirectLink a:hover {
+  text-decoration: underline;
+}
