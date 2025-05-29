@@ -1,0 +1,173 @@
+/* src/pages/PricingPage.module.css */
+.pricingPageContainer {
+  max-width: 1100px;
+  margin: 40px auto;
+  padding: 20px;
+  color: var(--text-color);
+  font-family: 'Inter', sans-serif;
+}
+
+.pricingHeader {
+  text-align: center;
+  margin-bottom: 50px;
+}
+
+.pricingHeader h1 {
+  font-size: 2.8rem;
+  font-weight: 700;
+  font-family: 'Poppins', sans-serif;
+  color: rgba(255,255,255,0.95);
+  margin-bottom: 15px;
+  line-height: 1.2;
+}
+
+.pricingHeader p {
+  font-size: 1.1rem;
+  color: var(--text-muted-color);
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.tiersContainer {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); /* Responsive grid */
+  gap: 30px;
+  align-items: stretch; /* Make cards same height if in same row */
+}
+
+.tierCard {
+  background-color: var(--bg-surface, #1e1e1e);
+  border-radius: 12px;
+  padding: 30px;
+  border: 1px solid var(--border-color);
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+  position: relative; /* For featured badge */
+}
+
+.tierCard:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+}
+
+.featuredTier {
+  border-color: var(--primary-color);
+  box-shadow: 0 0 25px rgba(0, 123, 255, 0.2); /* Subtle glow for featured */
+  transform: scale(1.03); /* Make it slightly larger */
+}
+.featuredTier:hover {
+    transform: scale(1.05) translateY(-5px); /* Enhanced hover for featured */
+}
+
+.featuredBadge {
+  position: absolute;
+  top: -15px; /* Position badge slightly above card */
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: var(--primary-color);
+  color: white;
+  padding: 6px 15px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+
+.tierName {
+  font-size: 1.6rem;
+  font-weight: 600;
+  font-family: 'Poppins', sans-serif;
+  color: rgba(255,255,255,0.9);
+  margin-bottom: 10px;
+  text-align: center;
+}
+
+.tierPrice {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: var(--primary-color);
+  margin-bottom: 20px;
+  text-align: center;
+  line-height: 1;
+}
+.featuredTier .tierPrice {
+    color: var(--primary-color); /* Ensure featured price stands out */
+}
+
+.priceSuffix {
+  font-size: 1rem;
+  font-weight: 400;
+  color: var(--text-muted-color);
+  margin-left: 5px;
+}
+
+.featuresList {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 25px 0;
+  flex-grow: 1; /* Allows list to take up space pushing button down */
+}
+
+.featureItem {
+  padding: 10px 0;
+  font-size: 0.95rem;
+  color: var(--text-muted-color);
+  border-bottom: 1px solid var(--border-color);
+  display: flex;
+  align-items: center;
+}
+.featureItem:last-child {
+  border-bottom: none;
+}
+/* Basic checkmark - replace with an SVG icon later for better look */
+.featureItem::before {
+  content: '✓'; 
+  color: var(--success-color);
+  margin-right: 10px;
+  font-weight: bold;
+  font-size: 1.1em;
+}
+
+
+.ctaButton {
+  display: block;
+  width: 100%;
+  padding: 14px;
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: white;
+  background-color: var(--primary-color);
+  border: none;
+  border-radius: 8px;
+  text-align: center;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  margin-top: auto; /* Push button to bottom of card */
+}
+
+.ctaButton:hover {
+  background-color: var(--primary-hover-color);
+  text-decoration: none;
+  color: white;
+}
+
+.tierCard:not(.featuredTier) .ctaButton { /* Style for non-featured CTAs */
+    background-color: var(--bg-surface);
+    color: var(--primary-color);
+    border: 1px solid var(--primary-color);
+}
+.tierCard:not(.featuredTier) .ctaButton:hover {
+    background-color: rgba(0, 123, 255, 0.1);
+}
+
+
+.pricingFooter {
+  text-align: center;
+  margin-top: 50px;
+  font-size: 0.9em;
+  color: var(--text-muted-color);
+}

@@ -1,13 +1,13 @@
 // src/pages/HomePage.jsx
-import React, { useState, useEffect, useCallback } from 'react'; // Added useCallback
+import React, { useState, useEffect, useCallback } from 'react';
 import styles from './HomePage.module.css';
 import axios from 'axios';
-import { useAuth } from '../context/AuthContext'; // Import useAuth for login status
-import { useNavigate } from 'react-router-dom';   // Import useNavigate for redirection
+import { useAuth } from '../context/AuthContext';
+import { useNavigate, Link } from 'react-router-dom'; // Make sure Link is imported
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5002';
 
-// --- LeadCard Component (Adding save functionality props) ---
+// --- LeadCard Component ---
 const LeadCard = ({ place, isFeatured = false, onClickCard, onSaveLead, isLeadSaved, isSavingLead }) => {
   const placeholderText = encodeURIComponent(place.name || 'Venue');
   const featuredPlaceholder = `https://via.placeholder.com/600x300.png/2a2a2e/ffffff?text=FP:${placeholderText}`;
@@ -23,18 +23,18 @@ const LeadCard = ({ place, isFeatured = false, onClickCard, onSaveLead, isLeadSa
     }
     setCurrentImageSrc(determinedSrc);
     setImageLoadFailed(false);
-  }, [place.photo_url, place.name, isFeatured, featuredPlaceholder, listPlaceholder]); // Added placeholders to dependency array
+  }, [place.photo_url, place.name, isFeatured, featuredPlaceholder, listPlaceholder]);
 
   const handleImageError = () => {
     if (!imageLoadFailed) {
       console.warn(`IMAGE LOAD ERROR for "${place.name}". Attempted src:`, currentImageSrc, "Will use placeholder.");
       setImageLoadFailed(true);
-      setCurrentImageSrc(isFeatured ? featuredPlaceholder : listPlaceholder); // Explicitly set to placeholder on error
+      setCurrentImageSrc(isFeatured ? featuredPlaceholder : listPlaceholder);
     }
   };
 
   const handleImageLoad = () => {
-    if (currentImageSrc === place.photo_url) { // Only clear error if the real image loaded
+    if (currentImageSrc === place.photo_url) {
         setImageLoadFailed(false);
     }
   };
@@ -80,11 +80,11 @@ const LeadCard = ({ place, isFeatured = false, onClickCard, onSaveLead, isLeadSa
              </a>
            </p>
         )}
-        {isFeatured && ( // "Save to My Leads" button ONLY on the FEATURED card
+        {isFeatured && (
           <div className={styles.cardActions}>
             <button 
               className={styles.saveLeadButton}
-              onClick={(e) => { e.stopPropagation(); onSaveLead(place); }} // Prevent card click if button is separate
+              onClick={(e) => { e.stopPropagation(); onSaveLead(place); }} 
               disabled={isLeadSaved || isSavingLead} 
             >
               {isSavingLead ? 'Saving...' : (isLeadSaved ? 'Saved ✓' : 'Save to My Leads')}
@@ -96,12 +96,24 @@ const LeadCard = ({ place, isFeatured = false, onClickCard, onSaveLead, isLeadSa
   );
 };
 
-// --- SearchResults Component (Modified to pass save-related props) ---
+// --- SearchResults Component (MODIFIED "Go Pro!" button to be a Link) ---
 const SearchResults = ({ allResults, featuredLead, onSelectLead, onSaveLead, savedLeadIds, savingLeadId }) => {
-  if (!featuredLead) return null;
+  if (!featuredLead && (!allResults || allResults.length === 0)) { // Check allResults too
+      return null; 
+  }
+  
+  // Ensure featuredLead exists before trying to access its properties for filtering
+  const featuredLeadId = featuredLead ? featuredLead.google_place_id : null;
+
   const otherLeads = allResults
-    .filter(p => p.google_place_id !== featuredLead.google_place_id)
+    .filter(p => p.google_place_id !== featuredLeadId) 
     .slice(0, 4);
+
+  // Determine if the "Go Pro" teaser should be shown
+  // It shows if the total number of API results is greater than what we are displaying (1 featured + up to 4 others)
+  const displayedCount = (featuredLead ? 1 : 0) + otherLeads.length;
+  const showProTeaser = allResults.length > displayedCount && allResults.length > 0;
+
 
   return (
     <div className={styles.resultsDisplayContainer}>
@@ -112,8 +124,8 @@ const SearchResults = ({ allResults, featuredLead, onSelectLead, onSaveLead, sav
               place={featuredLead} 
               isFeatured={true} 
               onSaveLead={onSaveLead}
-              isLeadSaved={savedLeadIds.includes(featuredLead.google_place_id)}
-              isSavingLead={savingLeadId === featuredLead.google_place_id}
+              isLeadSaved={featuredLeadId ? savedLeadIds.includes(featuredLeadId) : false}
+              isSavingLead={featuredLeadId ? savingLeadId === featuredLeadId : false}
             />
           </div>
         )}
@@ -131,10 +143,12 @@ const SearchResults = ({ allResults, featuredLead, onSelectLead, onSaveLead, sav
           </div>
         )}
       </div>
-      {allResults.length > (1 + otherLeads.length) && ( // Adjusted count for pro teaser
+      {showProTeaser && ( 
         <div className={styles.proTeaser}>
           <p>Want to see all {allResults.length} results and unlock full details?</p>
-          <button className={styles.proButton}>Go Pro!</button>
+          <Link to="/pricing" className={styles.proButton}> {/* CHANGED TO LINK */}
+            Go Pro!
+          </Link>
         </div>
       )}
     </div>
@@ -142,7 +156,7 @@ const SearchResults = ({ allResults, featuredLead, onSelectLead, onSaveLead, sav
 };
 
 
-// --- HomePage Component (Integrating Save Lead Logic) ---
+// --- HomePage Component ---
 function HomePage() {
   const [query, setQuery] = useState('');
   const [allSearchResults, setAllSearchResults] = useState([]);
@@ -151,8 +165,8 @@ function HomePage() {
   const [searchError, setSearchError] = useState('');
   const [hasSearched, setHasSearched] = useState(false);
 
-  const { isLoggedIn } = useAuth(); // Get auth state
-  const navigate = useNavigate();   // For redirecting
+  const { isLoggedIn } = useAuth(); 
+  const navigate = useNavigate();   
 
   const [savedLeadIdsThisSearch, setSavedLeadIdsThisSearch] = useState([]);
   const [savingLeadId, setSavingLeadId] = useState(null); 
@@ -180,7 +194,7 @@ function HomePage() {
     event.preventDefault();
     if (!query.trim()) { setSearchError('Please enter a search term.'); setAllSearchResults([]); setSelectedLead(null); setHasSearched(true); return; }
     setIsLoading(true); setSearchError(''); setAllSearchResults([]); setSelectedLead(null); setHasSearched(true);
-    setSavedLeadIdsThisSearch([]); // Reset for new search
+    setSavedLeadIdsThisSearch([]); 
     
     try {
       const response = await axios.get(`${API_BASE_URL}/api/search/places`, { params: { query: query } });
@@ -232,7 +246,7 @@ function HomePage() {
         setUserSavedLeadGoogleIds(prev => new Set(prev).add(placeToSave.google_place_id));
         alert(`${placeToSave.name} saved to My Leads!`);
       } else if (response.status === 409) {
-        setSavedLeadIdsThisSearch(prev => [...prev, placeToSave.google_place_id]); // Mark as saved if backend says so
+        setSavedLeadIdsThisSearch(prev => [...prev, placeToSave.google_place_id]);
         setUserSavedLeadGoogleIds(prev => new Set(prev).add(placeToSave.google_place_id));
         alert(`${placeToSave.name} was already in your saved leads.`);
       }
@@ -271,7 +285,7 @@ function HomePage() {
             allResults={allSearchResults} 
             featuredLead={selectedLead}
             onSelectLead={handleSelectLeadFromList}
-            onSaveLead={handleSaveLead} // Pass the save handler
+            onSaveLead={handleSaveLead}
             savedLeadIds={[...savedLeadIdsThisSearch, ...Array.from(userSavedLeadGoogleIds)]}
             savingLeadId={savingLeadId}
           />

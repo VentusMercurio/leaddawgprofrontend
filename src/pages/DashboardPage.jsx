@@ -1,10 +1,10 @@
 // src/pages/DashboardPage.jsx
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react'; // Added useMemo
 import { useAuth } from '../context/AuthContext';
 import axios from 'axios';
 import styles from './DashboardPage.module.css';
 import { useNavigate } from 'react-router-dom';
-import LeadDetailModal from '../components/LeadDetailModal'; // Import the modal
+import LeadDetailView from '../components/LeadDetailView'; // Import the new full-screen view
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5002';
 const STATUS_OPTIONS = ["New", "Contacted", "Followed Up", "Interested", "Booked", "Not Interested", "Pending"];
@@ -16,12 +16,14 @@ function DashboardPage() {
   const [isLoadingLeads, setIsLoadingLeads] = useState(false);
   const [error, setError] = useState('');
 
-  // --- State for Modal ---
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [selectedLeadForModal, setSelectedLeadForModal] = useState(null);
+  // --- State for Full-Screen Detail View ---
+  const [isDetailViewOpen, setIsDetailViewOpen] = useState(false); // Renamed from isModalOpen
+  const [selectedLeadForDetail, setSelectedLeadForDetail] = useState(null); // Renamed
+
+  // --- State for Dashboard Search/Filter ---
+  const [searchTerm, setSearchTerm] = useState('');
 
   const fetchSavedLeads = useCallback(async () => {
-    // ... (fetchSavedLeads logic - no changes) ...
     if (!isLoggedIn) return;
     setIsLoadingLeads(true); setError('');
     try {
@@ -41,67 +43,79 @@ function DashboardPage() {
   }, [isLoggedIn, isLoadingAuth, navigate, fetchSavedLeads]);
 
   const handleStatusChangeOnTable = async (leadId, newStatus) => {
-    // ... (handleStatusChangeOnTable logic - mostly same, renamed for clarity) ...
     const originalLeads = [...savedLeads];
     setSavedLeads(prevLeads => prevLeads.map(lead => lead.id === leadId ? { ...lead, user_status: newStatus, _isUpdating: true } : lead ));
     try {
-      await axios.put(`${API_BASE_URL}/api/leads/${leadId}`, { user_status: newStatus }, { withCredentials: true });
-      // Refetch for consistency or update local state more precisely
-      setSavedLeads(prevLeads => prevLeads.map(lead => lead.id === leadId ? { ...lead, user_status: newStatus, _isUpdating: false } : lead ));
+      const response = await axios.put(`${API_BASE_URL}/api/leads/${leadId}`, { user_status: newStatus }, { withCredentials: true });
+      // Update with the fresh data from the server, including updated_at
+      setSavedLeads(prevLeads => prevLeads.map(lead => lead.id === leadId ? { ...response.data.lead, _isUpdating: false } : lead ));
+      // Also update selectedLeadForDetail if it's the one being edited in the detail view
+      if (selectedLeadForDetail && selectedLeadForDetail.id === leadId) {
+        setSelectedLeadForDetail(prev => ({...prev, ...response.data.lead}));
+      }
     } catch (err) {
       console.error("Error updating lead status:", err);
       setError(`Failed to update status for lead ID ${leadId}.`);
-      setSavedLeads(originalLeads);
+      setSavedLeads(originalLeads); // Revert on error
     }
   };
 
-  const handleOpenLeadModal = (lead) => {
-    setSelectedLeadForModal(lead);
-    setIsModalOpen(true);
+  // Renamed handlers for clarity
+  const handleOpenDetailView = (lead) => {
+    setSelectedLeadForDetail(lead);
+    setIsDetailViewOpen(true);
   };
 
-  const handleCloseLeadModal = () => {
-    setIsModalOpen(false);
-    setSelectedLeadForModal(null);
+  const handleCloseDetailView = () => {
+    setIsDetailViewOpen(false);
+    // setSelectedLeadForDetail(null); // Keep selectedLeadForDetail for smoother transitions, or clear it
   };
 
-  const handleUpdateLeadInModal = async (leadId, updates) => {
-    // updates will be an object like { user_notes: "...", user_status: "..." }
+  const handleUpdateLeadDetails = async (leadId, updates) => {
     try {
-      const response = await axios.put(`${API_BASE_URL}/api/leads/${leadId}`, updates, {
-        withCredentials: true,
-      });
+      const response = await axios.put(`${API_BASE_URL}/api/leads/${leadId}`, updates, { withCredentials: true });
       if (response.data && response.data.lead) {
-        // Update the lead in the main savedLeads array
-        setSavedLeads(prevLeads => 
-          prevLeads.map(l => l.id === leadId ? response.data.lead : l)
-        );
-        return true; // Indicate success
+        const updatedLeadFromServer = response.data.lead;
+        setSavedLeads(prevLeads => prevLeads.map(l => l.id === leadId ? updatedLeadFromServer : l));
+        if (selectedLeadForDetail && selectedLeadForDetail.id === leadId) {
+          setSelectedLeadForDetail(updatedLeadFromServer); // Update the state for the detail view
+        }
+        // alert("Lead details updated!"); // Or a more subtle notification
+        return true; 
       }
     } catch (err) {
-      console.error("Error updating lead from modal:", err);
-      alert(err.response?.data?.message || "Failed to update lead.");
-      return false; // Indicate failure
+      console.error("Error updating lead from detail view:", err);
+      alert(err.response?.data?.message || "Failed to update lead details.");
+      return false;
     }
     return false;
   };
 
-  const handleDeleteLeadInModal = async (leadId) => {
+  const handleDeleteLead = async (leadId) => {
     try {
-      await axios.delete(`${API_BASE_URL}/api/leads/${leadId}`, {
-        withCredentials: true,
-      });
-      // Remove the lead from the main savedLeads array
+      await axios.delete(`${API_BASE_URL}/api/leads/${leadId}`, { withCredentials: true });
       setSavedLeads(prevLeads => prevLeads.filter(l => l.id !== leadId));
-      return true; // Indicate success
+      handleCloseDetailView(); // Close detail view if the shown lead was deleted
+      // alert("Lead deleted!");
+      return true;
     } catch (err) {
-      console.error("Error deleting lead from modal:", err);
+      console.error("Error deleting lead:", err);
       alert(err.response?.data?.message || "Failed to delete lead.");
-      return false; // Indicate failure
+      return false;
     }
     return false;
   };
 
+  // Memoized filtered leads for dashboard search
+  const filteredLeads = useMemo(() => {
+    if (!searchTerm.trim()) return savedLeads;
+    const lowerSearchTerm = searchTerm.toLowerCase();
+    return savedLeads.filter(lead => 
+      (lead.name_at_save && lead.name_at_save.toLowerCase().includes(lowerSearchTerm)) ||
+      (lead.address_at_save && lead.address_at_save.toLowerCase().includes(lowerSearchTerm)) ||
+      (lead.user_notes && lead.user_notes.toLowerCase().includes(lowerSearchTerm))
+    );
+  }, [savedLeads, searchTerm]);
 
   if (isLoadingAuth || (!isLoggedIn && !isLoadingAuth) ) { 
     return <div className={styles.loadingPage}>Loading dashboard...</div>;
@@ -111,18 +125,31 @@ function DashboardPage() {
     <div className={styles.dashboardContainer}>
       <header className={styles.dashboardHeader}>
         <h1>My Saved Leads</h1>
-        <p>Manage your prospects and track your outreach. ({savedLeads.length} saved)</p>
+        <p>Manage your prospects and track your outreach. ({filteredLeads.length} matching / {savedLeads.length} total)</p>
       </header>
 
-      {/* ... (isLoadingLeads, error, noLeadsMessage rendering - no changes) ... */}
-       {isLoadingLeads && <p className={styles.loadingMessage}>Fetching your leads...</p>}
+      <div className={styles.filterControls}>
+        <input
+          type="text"
+          placeholder="Search your saved leads (name, address, notes)..."
+          className={styles.searchInputDashboard}
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+        />
+        {/* Add Status Filter Dropdown here later */}
+      </div>
+
+      {isLoadingLeads && <p className={styles.loadingMessage}>Fetching your leads...</p>}
       {error && <p className={styles.errorMessage}>{error}</p>}
+      
       {!isLoadingLeads && !error && savedLeads.length === 0 && (
         <p className={styles.noLeadsMessage}>You haven't saved any leads yet. Start searching to build your list!</p>
       )}
+      {!isLoadingLeads && !error && savedLeads.length > 0 && filteredLeads.length === 0 && searchTerm && (
+        <p className={styles.noLeadsMessage}>No saved leads match your search term "{searchTerm}".</p>
+      )}
 
-
-      {!isLoadingLeads && savedLeads.length > 0 && (
+      {!isLoadingLeads && filteredLeads.length > 0 && (
         <div className={styles.leadsTableContainer}>
           <table className={styles.leadsTable}>
             <thead>
@@ -135,16 +162,19 @@ function DashboardPage() {
               </tr>
             </thead>
             <tbody>
-              {savedLeads.map(lead => (
+              {filteredLeads.map(lead => (
                 <tr key={lead.id} className={lead._isUpdating ? styles.isUpdatingRow : ''}>
-                  <td onClick={() => handleOpenLeadModal(lead)} style={{cursor: 'pointer', color: 'var(--primary-color)'}}>{lead.name_at_save}</td>
-                  <td onClick={() => handleOpenLeadModal(lead)} style={{cursor: 'pointer'}}>{lead.address_at_save ? lead.address_at_save.split(',')[0] : 'N/A'}</td>
-                  <td onClick={() => handleOpenLeadModal(lead)} style={{cursor: 'pointer'}}>{new Date(lead.saved_at).toLocaleDateString()}</td>
+                  <td onClick={() => handleOpenDetailView(lead)} style={{cursor: 'pointer', color: 'var(--primary-color)'}}>{lead.name_at_save}</td>
+                  <td onClick={() => handleOpenDetailView(lead)} style={{cursor: 'pointer'}}>{lead.address_at_save ? lead.address_at_save.split(',')[0] : 'N/A'}</td>
+                  <td onClick={() => handleOpenDetailView(lead)} style={{cursor: 'pointer'}}>{new Date(lead.saved_at).toLocaleDateString()}</td>
                   <td>
                     <select 
                       value={lead.user_status} 
-                      onChange={(e) => handleStatusChangeOnTable(lead.id, e.target.value)}
-                      onClick={(e) => e.stopPropagation()} // Prevent row click when changing status
+                      onChange={(e) => {
+                        e.stopPropagation(); // Prevent row click when changing status
+                        handleStatusChangeOnTable(lead.id, e.target.value);
+                      }}
+                      onClick={(e) => e.stopPropagation()} // Also here, just in case
                       className={styles.statusSelect}
                       disabled={lead._isUpdating}
                     >
@@ -156,9 +186,9 @@ function DashboardPage() {
                   <td>
                     <button 
                       className={styles.actionButton} 
-                      onClick={() => handleOpenLeadModal(lead)}
+                      onClick={() => handleOpenDetailView(lead)}
                     >
-                      View/Edit
+                      Details
                     </button>
                   </td>
                 </tr>
@@ -168,13 +198,16 @@ function DashboardPage() {
         </div>
       )}
 
-      <LeadDetailModal
-        lead={selectedLeadForModal}
-        isOpen={isModalOpen}
-        onClose={handleCloseLeadModal}
-        onUpdateLead={handleUpdateLeadInModal}
-        onDeleteLead={handleDeleteLeadInModal}
-      />
+      {/* Use LeadDetailView and pass renamed state/handlers */}
+      {isDetailViewOpen && selectedLeadForDetail && (
+        <LeadDetailView
+          lead={selectedLeadForDetail}
+          // No need for isOpen prop as conditional rendering handles it
+          onClose={handleCloseDetailView}
+          onUpdateLead={handleUpdateLeadDetails} // Pass the renamed handler
+          onDeleteLead={handleDeleteLead}       // Pass the renamed handler
+        />
+      )}
     </div>
   );
 }

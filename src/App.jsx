@@ -7,6 +7,7 @@ import RegisterPage from './pages/RegisterPage';
 import DashboardPage from './pages/DashboardPage';
 import NotFoundPage from './pages/NotFoundPage';
 import { useAuth } from './context/AuthContext'; // Import useAuth
+import PricingPage from './pages/PricingPage'; // Import the new page
 import './App.css';
 
 function App() {
@@ -48,6 +49,7 @@ function App() {
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
           {/* Basic Dashboard route for now, will add protection later */}
+          <Route path="/pricing" element={<PricingPage />} /> {/* ADD THIS ROUTE */}
           <Route path="/dashboard" element={<DashboardPage />} /> 
           <Route path="*" element={<NotFoundPage />} />
         </Routes>
