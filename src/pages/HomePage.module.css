@@ -37,13 +37,13 @@
   filter: blur(8px); /* INCREASED BLUR TO MATCH THICKNESS, BUT STILL DEFINED */
   border-radius: 15px; /* Rounded ends for the thicker ribbon */
   top: 48%; 
-  animation: ribbonFlowOne 25s infinite linear; 
-  box-shadow: 0 0 15px 4px hsla(195, 100%, 75%, 0.4), /* STRONGER GLOW */
-              0 0 30px 8px hsla(210, 100%, 75%, 0.25);
-  opacity: 0.25; /* INCREASED BASE OPACITY FOR THE STREAM */
+  animation: ribbonFlowOne 40s infinite ease-in-out alternate; 
+  box-shadow: 0 0 30px 4px hsla(195, 100%, 75%, 0.4), /* STRONGER GLOW */
+              0 0 120px 8px hsla(210, 100%, 75%, 0.25);
+  opacity: 0.35; /* INCREASED BASE OPACITY FOR THE STREAM */
 }
 
-.homePageContainer::after { /* Secondary, softer, broader energy wave - unchanged for now */
+.homePageContainer::after { /* Secondary, softer, broader energy wave */
   width: 220vw;
   height: 150px; 
   background: radial-gradient( 
@@ -56,25 +56,68 @@
   border-radius: 50%; 
   top: 50%; 
   transform: translateY(-50%); 
-  animation: ribbonWaveTwo 38s infinite ease-in-out alternate;
-  animation-delay: -7s;
-  opacity: 0.07; 
+  /* --- DECREASED DURATION --- */
+  animation: ribbonWaveTwo 35s infinite ease-in-out alternate; /* Was 55s, now 35s */
+  animation-delay: -7s; /* Keep the delay so they don't start exactly together */
+  opacity: 0.07; /* Keep opacity as is unless you want it brighter too */
 }
 
+/* --- MODIFIED KEYFRAMES FOR MORE WAVES (double frequency) --- */
+/* --- REFINED @keyframes ribbonFlowOne FOR MORE PRONOUNCED SINE WAVE --- */
 @keyframes ribbonFlowOne { 
-  0%   { transform: translateX(-110%) translateY(0vh) skewX(-25deg); opacity: 0; }
-  15%  { opacity: 0.25; } /* Target opacity for this stream */
-  85%  { opacity: 0.25; }
-  100% { transform: translateX(110vw) translateY(5vh) skewX(-15deg); opacity: 0; }
+  0% {
+    transform: translateX(-110%) translateY(0vh) skewX(-15deg) rotate(-2deg);
+    opacity: 0;
+  }
+  5% { /* Faster fade in */
+     opacity: 0.25; /* Or your target opacity for the stream */
+  }
+
+  /* Start of first full wave cycle */
+  15% { /* Up */
+    transform: translateX(-75vw) translateY(-8vh) skewX(-20deg) rotate(-5deg);
+  }
+  25% { /* Down */
+    transform: translateX(-45vw) translateY(8vh) skewX(-10deg) rotate(3deg);
+  }
+  /* End of first full wave cycle (back to Y-center) */
+  35% { /* Up again towards center */
+    transform: translateX(-15vw) translateY(-3vh) skewX(-15deg) rotate(-2deg);
+  }
+
+  /* Start of second full wave cycle, around horizontal center */
+  45% { /* Up */
+    transform: translateX(15vw) translateY(-10vh) skewX(-20deg) rotate(-4deg);
+  }
+  55% { /* Down */
+    transform: translateX(45vw) translateY(10vh) skewX(-10deg) rotate(4deg);
+  }
+  /* End of second full wave cycle (back to Y-center) */
+  65% { /* Up again towards center */
+    transform: translateX(75vw) translateY(-2vh) skewX(-15deg) rotate(-1deg);
+  }
+  
+  /* Optional: A smaller, quicker third oscillation as it exits */
+  75% {
+    transform: translateX(95vw) translateY(-5vh) skewX(-18deg) rotate(-3deg);
+  }
+
+
+  95% { /* Start fading out */
+     opacity: 0.25; /* Hold target opacity */
+  }
+  100% {
+    transform: translateX(120vw) translateY(0vh) skewX(-10deg) rotate(1deg); 
+    opacity: 0;
+  }
 }
 
+/* @keyframes ribbonWaveTwo can remain as is, for the softer background effect */
 @keyframes ribbonWaveTwo { 
   0%   { transform: translateY(-50%) translateX(-30vw) scale(1) rotate(-5deg); opacity: 0.03; }
   50%  { transform: translateY(-50%) translateX(10vw) scale(1.2) rotate(5deg); opacity: 0.08; }
   100% { transform: translateY(-50%) translateX(-30vw) scale(1) rotate(-5deg); opacity: 0.03; }
 }
-/* --- END BOLDER RIBBON STREAM EFFECT --- */
-
 
 /* --- Content Styles (ensure they are on top with z-index: 1) --- */
 /* .heroSection, .tagline, .searchForm, .message, .resultsContainer should all have:
@@ -95,3 +138,222 @@
 .errorMessage { color: #ffacac; border-color: rgba(220, 53, 69, 0.5); background-color: rgba(220, 53, 69, 0.2); position: relative; z-index: 1;}
 .resultsContainer { width: 100%; max-width: 1100px; margin-top: 60px; padding: 0 20px; position: relative; z-index: 1;}
 .resultsContainer h3 { font-size: 1.8rem; color: var(--text-color); margin-bottom: 25px; text-align: left; padding-left: 0; border-bottom: 1px solid var(--border-color); padding-bottom: 10px; }
+
+/* src/pages/HomePage.module.css */
+
+/* ... (Keep .homePageContainer, .heroSection, .tagline, .searchForm, .searchInput, .searchButton from previous good version) ... */
+/* --- Ensure these content pieces are on top of any background effects --- */
+.heroSection, .tagline, .searchForm, .message, .resultsArea, .resultsDisplayContainer {
+  position: relative; 
+  z-index: 1;       
+}
+
+
+/* --- NEW STYLES FOR RESULTS DISPLAY --- */
+.resultsArea { /* Wrapper for all content below search form */
+  width: 100%;
+  max-width: 1200px; /* Adjust as needed for overall layout */
+  margin-top: 40px;
+  padding: 0 20px;
+}
+
+.loadingMessage { /* Re-style the loading message */
+  text-align: center;
+  font-size: 1.2rem;
+  color: var(--text-muted-color);
+  padding: 40px 0;
+}
+
+.message { /* General message styling */
+  margin-top: 30px; padding: 15px 20px; border-radius: 8px; text-align: center; width: 100%; max-width: 700px; font-size: 1rem; background-color: rgba(40, 40, 40, 0.85); border: 1px solid var(--border-color); backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px); margin-left: auto; margin-right: auto;
+}
+.errorMessage { color: #ffc1c1; border-color: rgba(220, 53, 69, 0.6); background-color: rgba(220, 53, 69, 0.25); }
+
+
+.resultsDisplayContainer {
+  display: flex;
+  flex-direction: column; /* Stack map (future) and leads */
+  gap: 30px; /* Space between map and leads section */
+  margin-top: 20px;
+}
+
+/* Optional Map Placeholder Styling (for future) */
+.mapPlaceholder {
+  width: 100%;
+  height: 300px; /* Adjust as needed */
+  background-color: var(--bg-surface);
+  border: 1px dashed var(--border-color);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted-color);
+  border-radius: 8px;
+  font-style: italic;
+}
+
+.leadsLayout {
+  display: flex;
+  gap: 30px; /* Space between featured lead and list */
+  width: 100%;
+}
+
+.featuredLeadSection {
+  flex: 2; /* Takes up more space, e.g., 2/3rds */
+  min-width: 0; /* Important for flex item shrinking */
+}
+
+.otherLeadsSection {
+  flex: 1; /* Takes up less space, e.g., 1/3rd */
+  display: flex;
+  flex-direction: column;
+  gap: 15px; /* Space between list items */
+  min-width: 0; /* Important for flex item shrinking */
+  max-height: 600px; /* Example: if you want the list to scroll */
+  overflow-y: auto; /* Add scroll if content overflows max-height */
+}
+
+/* --- Lead Card Styles --- */
+.featuredLeadCard, .listLeadCard {
+  background-color: var(--bg-surface);
+  border-radius: 12px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+  overflow: hidden; /* To clip image if it's part of the card bg */
+  display: flex;
+  flex-direction: column;
+  color: var(--text-color);
+  transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+}
+
+.featuredLeadCard:hover, .listLeadCard:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
+}
+
+.featuredLeadCard {
+  /* Specific styles if different from list card */
+}
+
+.listLeadCard {
+  flex-direction: row; /* For smaller list items: image left, content right */
+  align-items: center; /* If using an image next to content */
+}
+
+.cardImagePlaceholder {
+  width: 100%; /* For featured card */
+  height: 220px; /* Adjust height for featured image */
+  background-color: #333; /* Placeholder color */
+  background-size: cover;
+  background-position: center;
+  /* border-bottom: 1px solid var(--border-color); */ /* If image is on top */
+}
+
+.listLeadCard .cardImagePlaceholder { /* For list items - not used in current LeadCard structure */
+  width: 100px;
+  height: 70px;
+  flex-shrink: 0;
+  margin-right: 15px;
+  border-radius: 8px 0 0 8px; /* Round corners if image is on left */
+}
+
+
+.cardContent {
+  padding: 20px;
+  flex-grow: 1; /* Allows content to fill space if card has fixed height */
+}
+
+.featuredLeadCard .cardContent {
+  padding: 25px;
+}
+
+.cardName {
+  font-size: 1.4rem;
+  font-weight: 600;
+  margin-bottom: 8px;
+  color: rgba(255, 255, 255, 0.95);
+}
+
+.listLeadCard .cardName {
+  font-size: 1.1rem;
+  font-weight: 500;
+}
+
+.cardAddress {
+  font-size: 0.9rem;
+  color: var(--text-muted-color);
+  margin-bottom: 12px;
+  line-height: 1.4;
+}
+
+.cardPhone, .cardWebsite {
+  font-size: 0.9rem;
+  color: var(--text-muted-color);
+  margin-bottom: 5px;
+}
+.cardWebsite a {
+  color: var(--primary-color);
+}
+.cardWebsite a:hover {
+  text-decoration: underline;
+}
+
+.cardActions {
+  margin-top: 15px;
+  padding-top: 15px;
+  border-top: 1px solid var(--border-color);
+  display: flex;
+  gap: 10px;
+}
+
+.listLeadCard .cardActions { /* Simpler actions for list items if needed */
+  margin-top: 10px;
+  padding-top: 10px;
+}
+
+.saveLeadButton {
+  background-color: var(--accent-color);
+  color: #111; /* Dark text on yellow */
+  border: none;
+  padding: 8px 15px;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+.saveLeadButton:hover {
+  background-color: var(--accent-hover-color);
+}
+
+/* Pro Teaser Styles */
+.proTeaser {
+  margin-top: 40px;
+  padding: 25px;
+  background-color: var(--bg-surface);
+  border: 1px solid var(--primary-color);
+  border-radius: 8px;
+  text-align: center;
+  box-shadow: 0 0 20px rgba(0, 123, 255, 0.2);
+}
+
+.proTeaser p {
+  font-size: 1.1rem;
+  margin-bottom: 20px;
+  color: var(--text-color);
+}
+
+.proButton {
+  background: linear-gradient(90deg, hsla(217, 100%, 55%, 1) 0%, hsla(190, 100%, 60%, 1) 100%);
+  color: white;
+  border: none;
+  padding: 12px 30px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  border-radius: 50px;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.proButton:hover {
+  transform: scale(1.05);
+  box-shadow: 0 5px 15px rgba(0, 123, 255, 0.4);
+}
