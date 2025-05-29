@@ -1,58 +1,47 @@
 // src/pages/HomePage.jsx
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react'; // Added useCallback
 import styles from './HomePage.module.css';
 import axios from 'axios';
+import { useAuth } from '../context/AuthContext'; // Import useAuth for login status
+import { useNavigate } from 'react-router-dom';   // Import useNavigate for redirection
 
-// --- LeadCard Component (REMOVING DEBUG TEXT) ---
-const LeadCard = ({ place, isFeatured = false, onClickCard }) => {
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5002';
+
+// --- LeadCard Component (Adding save functionality props) ---
+const LeadCard = ({ place, isFeatured = false, onClickCard, onSaveLead, isLeadSaved, isSavingLead }) => {
   const placeholderText = encodeURIComponent(place.name || 'Venue');
   const featuredPlaceholder = `https://via.placeholder.com/600x300.png/2a2a2e/ffffff?text=FP:${placeholderText}`;
   const listPlaceholder = `https://via.placeholder.com/100x75.png/2a2a2e/ffffff?text=LP:${placeholderText}`;
 
-  // State for image source and error, managed by useEffect now
   const [currentImageSrc, setCurrentImageSrc] = useState(isFeatured ? featuredPlaceholder : listPlaceholder);
   const [imageLoadFailed, setImageLoadFailed] = useState(false);
 
   useEffect(() => {
-    // This effect runs when the 'place' prop changes, or when 'isFeatured' changes.
-    // It attempts to load the real photo_url if available.
-    let determinedSrc = isFeatured ? featuredPlaceholder : listPlaceholder; // Default to placeholder
+    let determinedSrc = isFeatured ? featuredPlaceholder : listPlaceholder;
     if (place.photo_url && typeof place.photo_url === 'string' && place.photo_url.trim() !== '') {
       determinedSrc = place.photo_url;
     }
-    
     setCurrentImageSrc(determinedSrc);
-    setImageLoadFailed(false); // Reset error state for a new image/place
-  }, [place.photo_url, place.name, isFeatured]); // Dependencies
+    setImageLoadFailed(false);
+  }, [place.photo_url, place.name, isFeatured, featuredPlaceholder, listPlaceholder]); // Added placeholders to dependency array
 
   const handleImageError = () => {
-    if (!imageLoadFailed) { // Prevent looping if placeholder itself fails
+    if (!imageLoadFailed) {
       console.warn(`IMAGE LOAD ERROR for "${place.name}". Attempted src:`, currentImageSrc, "Will use placeholder.");
-      setImageLoadFailed(true); // Mark that the primary image attempt failed
-      // The src will effectively be the placeholder because currentImageSrc won't update to a real URL again
-      // unless place.photo_url changes in props.
-      // If you want to explicitly set to placeholder again on error:
-      // setCurrentImageSrc(isFeatured ? featuredPlaceholder : listPlaceholder);
+      setImageLoadFailed(true);
+      setCurrentImageSrc(isFeatured ? featuredPlaceholder : listPlaceholder); // Explicitly set to placeholder on error
     }
   };
 
   const handleImageLoad = () => {
-    // console.log(`IMAGE LOAD SUCCESS for "${place.name}". Src:`, currentImageSrc);
-    // If a real image loads successfully, ensure no error state lingers
-    if (currentImageSrc === place.photo_url) {
+    if (currentImageSrc === place.photo_url) { // Only clear error if the real image loaded
         setImageLoadFailed(false);
     }
   };
   
   const cardClassName = isFeatured ? styles.featuredLeadCard : styles.listLeadCard;
-  
-  // Determine if an image container should be shown
-  // Show for featured, or for list items IF they have a photo_url (and it hasn't errored out into placeholder)
-  const showImageVisual = isFeatured || (!isFeatured && place.photo_url && typeof place.photo_url === 'string' && place.photo_url.trim() !== '');
-
-  // Determine the final src for the img tag: either the currentImageSrc (which could be real or placeholder)
-  // OR if imageLoadFailed is true, definitely the placeholder.
   const finalDisplaySrc = imageLoadFailed ? (isFeatured ? featuredPlaceholder : listPlaceholder) : currentImageSrc;
+  const showImageVisual = isFeatured || (!isFeatured && place.photo_url && typeof place.photo_url === 'string' && place.photo_url.trim() !== '');
 
   return (
     <div 
@@ -64,7 +53,7 @@ const LeadCard = ({ place, isFeatured = false, onClickCard }) => {
       {showImageVisual && (
         <div className={isFeatured ? styles.cardImageContainer : styles.listCardImageContainer}>
           <img 
-            key={finalDisplaySrc} // Key helps React differ between real img and placeholder if src string is same
+            key={finalDisplaySrc} 
             src={finalDisplaySrc} 
             alt={`${place.name || 'Venue'} image`} 
             className={styles.cardImage}
@@ -91,9 +80,15 @@ const LeadCard = ({ place, isFeatured = false, onClickCard }) => {
              </a>
            </p>
         )}
-        {isFeatured && (
+        {isFeatured && ( // "Save to My Leads" button ONLY on the FEATURED card
           <div className={styles.cardActions}>
-            <button className={styles.saveLeadButton}>Save to My Leads</button>
+            <button 
+              className={styles.saveLeadButton}
+              onClick={(e) => { e.stopPropagation(); onSaveLead(place); }} // Prevent card click if button is separate
+              disabled={isLeadSaved || isSavingLead} 
+            >
+              {isSavingLead ? 'Saving...' : (isLeadSaved ? 'Saved ✓' : 'Save to My Leads')}
+            </button>
           </div>
         )}
       </div>
@@ -101,9 +96,8 @@ const LeadCard = ({ place, isFeatured = false, onClickCard }) => {
   );
 };
 
-// --- SearchResults Component (No changes needed from your last working version) ---
-const SearchResults = ({ allResults, featuredLead, onSelectLead }) => {
-  // ... (The logic here should be the one that correctly filters and maps to LeadCard)
+// --- SearchResults Component (Modified to pass save-related props) ---
+const SearchResults = ({ allResults, featuredLead, onSelectLead, onSaveLead, savedLeadIds, savingLeadId }) => {
   if (!featuredLead) return null;
   const otherLeads = allResults
     .filter(p => p.google_place_id !== featuredLead.google_place_id)
@@ -114,7 +108,13 @@ const SearchResults = ({ allResults, featuredLead, onSelectLead }) => {
       <div className={styles.leadsLayout}>
         {featuredLead && (
           <div className={styles.featuredLeadSection}>
-            <LeadCard place={featuredLead} isFeatured={true} />
+            <LeadCard 
+              place={featuredLead} 
+              isFeatured={true} 
+              onSaveLead={onSaveLead}
+              isLeadSaved={savedLeadIds.includes(featuredLead.google_place_id)}
+              isSavingLead={savingLeadId === featuredLead.google_place_id}
+            />
           </div>
         )}
         {otherLeads.length > 0 && (
@@ -125,12 +125,13 @@ const SearchResults = ({ allResults, featuredLead, onSelectLead }) => {
                 place={place} 
                 isFeatured={false} 
                 onClickCard={onSelectLead}
+                // Not passing save props to list items as per current design
               />
             ))}
           </div>
         )}
       </div>
-      {allResults.length > 5 && ( 
+      {allResults.length > (1 + otherLeads.length) && ( // Adjusted count for pro teaser
         <div className={styles.proTeaser}>
           <p>Want to see all {allResults.length} results and unlock full details?</p>
           <button className={styles.proButton}>Go Pro!</button>
@@ -140,9 +141,9 @@ const SearchResults = ({ allResults, featuredLead, onSelectLead }) => {
   );
 };
 
-// --- HomePage Component (No changes needed from your last working version) ---
+
+// --- HomePage Component (Integrating Save Lead Logic) ---
 function HomePage() {
-  // ... (The state and handlers here should be the version that implemented click-to-feature)
   const [query, setQuery] = useState('');
   const [allSearchResults, setAllSearchResults] = useState([]);
   const [selectedLead, setSelectedLead] = useState(null);
@@ -150,11 +151,37 @@ function HomePage() {
   const [searchError, setSearchError] = useState('');
   const [hasSearched, setHasSearched] = useState(false);
 
+  const { isLoggedIn } = useAuth(); // Get auth state
+  const navigate = useNavigate();   // For redirecting
+
+  const [savedLeadIdsThisSearch, setSavedLeadIdsThisSearch] = useState([]);
+  const [savingLeadId, setSavingLeadId] = useState(null); 
+  const [userSavedLeadGoogleIds, setUserSavedLeadGoogleIds] = useState(new Set());
+
+  const fetchUserSavedLeadIds = useCallback(async () => {
+    if (isLoggedIn) {
+      try {
+        const response = await axios.get(`${API_BASE_URL}/api/leads`, { withCredentials: true });
+        if (response.data && response.data.leads) {
+          const ids = new Set(response.data.leads.map(lead => lead.place_id_google));
+          setUserSavedLeadGoogleIds(ids);
+        }
+      } catch (error) { console.error("Error fetching user's saved lead IDs:", error); }
+    } else {
+      setUserSavedLeadGoogleIds(new Set());
+    }
+  }, [isLoggedIn]);
+
+  useEffect(() => {
+    fetchUserSavedLeadIds();
+  }, [fetchUserSavedLeadIds]);
+
   const handleSearchSubmit = async (event) => {
     event.preventDefault();
     if (!query.trim()) { setSearchError('Please enter a search term.'); setAllSearchResults([]); setSelectedLead(null); setHasSearched(true); return; }
     setIsLoading(true); setSearchError(''); setAllSearchResults([]); setSelectedLead(null); setHasSearched(true);
-    const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5002';
+    setSavedLeadIdsThisSearch([]); // Reset for new search
+    
     try {
       const response = await axios.get(`${API_BASE_URL}/api/search/places`, { params: { query: query } });
       if (response.data && response.data.status === "OK" && response.data.places.length > 0) {
@@ -175,6 +202,46 @@ function HomePage() {
 
   const handleSelectLeadFromList = (place) => {
     setSelectedLead(place);
+  };
+
+  const handleSaveLead = async (placeToSave) => {
+    if (!isLoggedIn) {
+      navigate('/login', { state: { from: '/', message: 'Please login to save leads.' } });
+      return;
+    }
+    if (!placeToSave || !placeToSave.google_place_id) {
+      alert("Cannot save this lead, data is incomplete.");
+      return;
+    }
+    if (savedLeadIdsThisSearch.includes(placeToSave.google_place_id) || userSavedLeadGoogleIds.has(placeToSave.google_place_id)) {
+        alert(`${placeToSave.name} is already saved!`);
+        return;
+    }
+    setSavingLeadId(placeToSave.google_place_id);
+    try {
+      const payload = {
+        google_place_id: placeToSave.google_place_id,
+        name: placeToSave.name,
+        address: placeToSave.address,
+        phone: placeToSave.phone_number,
+        website: placeToSave.website,
+      };
+      const response = await axios.post(`${API_BASE_URL}/api/leads`, payload, { withCredentials: true });
+      if (response.status === 201) {
+        setSavedLeadIdsThisSearch(prev => [...prev, placeToSave.google_place_id]);
+        setUserSavedLeadGoogleIds(prev => new Set(prev).add(placeToSave.google_place_id));
+        alert(`${placeToSave.name} saved to My Leads!`);
+      } else if (response.status === 409) {
+        setSavedLeadIdsThisSearch(prev => [...prev, placeToSave.google_place_id]); // Mark as saved if backend says so
+        setUserSavedLeadGoogleIds(prev => new Set(prev).add(placeToSave.google_place_id));
+        alert(`${placeToSave.name} was already in your saved leads.`);
+      }
+    } catch (err) {
+      console.error("Error saving lead:", err);
+      alert(err.response?.data?.message || "Failed to save lead. Please try again.");
+    } finally {
+      setSavingLeadId(null);
+    }
   };
 
   return (
@@ -203,7 +270,10 @@ function HomePage() {
           <SearchResults 
             allResults={allSearchResults} 
             featuredLead={selectedLead}
-            onSelectLead={handleSelectLeadFromList} 
+            onSelectLead={handleSelectLeadFromList}
+            onSaveLead={handleSaveLead} // Pass the save handler
+            savedLeadIds={[...savedLeadIdsThisSearch, ...Array.from(userSavedLeadGoogleIds)]}
+            savingLeadId={savingLeadId}
           />
         )}
       </div>

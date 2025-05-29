@@ -305,18 +305,29 @@
 .cardActions { margin-top: auto; padding-top: 15px; border-top: 1px solid var(--border-color); display: flex; }
 /* Remove .listLeadCard .cardActions if button is removed from list items */
 
-.saveLeadButton { /* Only for featured card now */
-  background-color: var(--accent-color); color: #111; border: none;
-  padding: 10px 20px; /* Made button a bit bigger */
-  border-radius: 8px; font-size: 0.9rem; 
-  font-weight: 600; cursor: pointer; transition: background-color 0.2s ease;
-  /* width: auto; /* Let it size to content */
-  /* white-space: nowrap; */
-  /* overflow: hidden; */
-  /* text-overflow: ellipsis; */
+/* src/pages/HomePage.module.css */
+/* ... (all existing styles) ... */
+
+.saveLeadButton {
+  background-color: var(--accent-color); 
+  color: #111; 
+  border: none;
+  padding: 10px 20px; 
+  border-radius: 8px; 
+  font-size: 0.9rem; 
+  font-weight: 600; 
+  cursor: pointer; 
+  transition: background-color 0.2s ease, opacity 0.2s ease;
 }
-.saveLeadButton:hover { background-color: var(--accent-hover-color); }
-/* Pro Teaser Styles (no change needed from previous) */.proTeaser {
+.saveLeadButton:hover:not(:disabled) {
+  background-color: var(--accent-hover-color);
+}
+.saveLeadButton:disabled {
+  background-color: var(--secondary-color) !important; /* Ensure disabled style overrides */
+  color: rgba(255,255,255,0.7) !important;
+  cursor: not-allowed;
+  opacity: 0.8;
+}/* Pro Teaser Styles (no change needed from previous) */.proTeaser {
   margin-top: 40px;
   padding: 25px;
   background-color: var(--bg-surface);
