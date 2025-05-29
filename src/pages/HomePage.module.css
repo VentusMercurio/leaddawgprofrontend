@@ -7,88 +7,92 @@
   align-items: center;
   min-height: calc(100vh - 75px);
   padding: 20px; 
-  background-color: #0A0A10; /* Even deeper, slightly blue-tinted black */
+  background-color: #0A0A10; 
   position: relative; 
   overflow: hidden; 
 }
 
-/* --- STREAM EFFECT BACKGROUND --- */
+/* --- BRIGHTER & MORE CENTERED STREAM EFFECT --- */
 .homePageContainer::before,
 .homePageContainer::after {
   content: '';
   position: absolute;
-  left: 50%; /* Start them centered horizontally for easier transform origin */
-  top: 50%;  /* Start them centered vertically */
-  opacity: 0.3; /* Start with a moderate opacity for visibility */
+  left: 50%; 
+  /* Start them vertically centered then offset with transform */
+  top: 50%; 
+  opacity: 0.4; /* INCREASED OPACITY SIGNIFICANTLY - Start here for tuning */
   z-index: 0; 
   will-change: transform, opacity;
-  transform-origin: center center; /* Ensure rotations/scales are from the center */
+  transform-origin: center center;
+  border-radius: 100px; 
 }
 
-.homePageContainer::before { /* First light stream */
-  width: 200%; /* Very wide to simulate a long stream */
-  height: 150px; /* Relatively thin, like a ribbon */
-  background: linear-gradient(
-    to right, 
-    hsla(190, 100%, 70%, 0),     /* Transparent edge */
-    hsla(190, 100%, 65%, 0.4) 40%, /* Cyan core, slightly more opaque */
-    hsla(190, 100%, 65%, 0.4) 60%,
-    hsla(190, 100%, 70%, 0)      /* Transparent edge */
-  );
-  filter: blur(25px); /* Less blur to keep it somewhat defined */
-  border-radius: 75px; /* Rounded ends for the ribbon */
-  animation: streamFlowOne 25s infinite linear;
-  /* Initial transform to position and rotate it off-center */
-  transform: translate(-50%, -150%) rotate(-35deg) skewX(-20deg);
-}
-
-.homePageContainer::after { /* Second light stream, different properties */
-  width: 250%;
+.homePageContainer::before { /* Stream 1 - Brighter Cyan/Blue */
+  width: 160vw; 
   height: 100px; 
   background: linear-gradient(
-    to right, 
-    hsla(220, 100%, 75%, 0),    /* Transparent edge */
-    hsla(220, 100%, 70%, 0.3) 45%, /* Blue core */
-    hsla(220, 100%, 70%, 0.3) 55%,
-    hsla(220, 100%, 75%, 0)     /* Transparent edge */
+    90deg,
+    hsla(190, 100%, 80%, 0) 0%,    /* Transparent start */
+    hsla(190, 95%, 65%, 0.7) 40%,  /* BRIGHTER & MORE OPAQUE CYAN CORE */
+    hsla(190, 95%, 65%, 0.7) 60%,
+    hsla(190, 100%, 80%, 0) 100%   /* Transparent end */
   );
-  filter: blur(35px); /* Slightly more blur for depth */
-  border-radius: 50px;
-  animation: streamFlowTwo 35s infinite linear;
-  transform: translate(-50%, 100%) rotate(25deg) skewX(15deg);
-  animation-delay: -7s; /* Offset start */
+  filter: blur(15px); /* REDUCED BLUR for more definition */
+  animation: streamCenterFlowOne 22s infinite linear;
+  /* Initial transform: centered, then offset and rotated */
+  transform: translate(-50%, -50%) rotate(-30deg) skewX(-20deg); 
 }
 
-@keyframes streamFlowOne {
+.homePageContainer::after { /* Stream 2 - Brighter Deeper Blue */
+  width: 200vw;
+  height: 140px; 
+  background: linear-gradient(
+    90deg,
+    hsla(220, 100%, 85%, 0) 0%,
+    hsla(220, 90%, 70%, 0.6) 45%, /* BRIGHTER & MORE OPAQUE BLUE CORE */
+    hsla(220, 90%, 70%, 0.6) 55%,
+    hsla(220, 100%, 85%, 0) 100%
+  );
+  filter: blur(25px); /* Slightly more blur than the first, but still defined */
+  animation: streamCenterFlowTwo 32s infinite linear;
+  transform: translate(-50%, -50%) rotate(20deg) skewX(15deg); /* Centered, then offset/rotated */
+  animation-delay: -8s;
+}
+
+@keyframes streamCenterFlowOne {
   0% {
-    transform: translate(-50%, -150%) rotate(-35deg) skewX(-20deg) translateX(-100vw);
+    /* Start from one side, passing through center */
+    transform: translate(-120vw, -50%) rotate(-30deg) skewX(-20deg); 
     opacity: 0;
   }
-  20% { /* Fade in */
-    opacity: 0.25;
+  10% {
+     opacity: 0.4; /* Target opacity */
   }
-  80% { /* Fade out */
-    opacity: 0.25;
+  90% {
+     opacity: 0.4; /* Hold opacity */
   }
   100% {
-    transform: translate(-50%, 50vh) rotate(-25deg) skewX(-20deg) translateX(100vw); /* Move across and slightly down */
+    /* End on the other side, passing through center */
+    transform: translate(120vw, -40%) rotate(-20deg) skewX(-20deg); 
     opacity: 0;
   }
 }
 
-@keyframes streamFlowTwo {
+@keyframes streamCenterFlowTwo {
   0% {
-    transform: translate(-50%, 100%) rotate(25deg) skewX(15deg) translateX(100vw); /* Start from other side */
+    /* Start from other side, passing through center */
+    transform: translate(130vw, -50%) rotate(20deg) skewX(15deg); 
     opacity: 0;
   }
-  20% {
-    opacity: 0.2;
+  10% {
+     opacity: 0.35; /* Target opacity */
   }
-  80% {
-    opacity: 0.2;
+  90% {
+     opacity: 0.35; /* Hold opacity */
   }
   100% {
-    transform: translate(-50%, -100vh) rotate(15deg) skewX(15deg) translateX(-100vw); /* Move across and slightly up */
+    /* End on the other side, passing through center */
+    transform: translate(-130vw, -60%) rotate(10deg) skewX(15deg); 
     opacity: 0;
   }
 }
@@ -96,41 +100,44 @@
 
 
 /* --- Content Styles (ensure they are on top with z-index: 1) --- */
+/* Keep .heroSection, .tagline, .searchForm, .searchInput, .searchButton, 
+   .message, .errorMessage, .resultsContainer styles from the previous "stylish" version.
+   The key is to ensure they ALL have 'position: relative; z-index: 1;'
+   if they are direct children of .homePageContainer or need to sit above the animation.
+*/
 .heroSection, .tagline, .searchForm, .message, .resultsContainer {
   position: relative; 
   z-index: 1;       
 }
-/* ... (Keep .heroSection, .tagline, .searchForm, .searchInput, .searchButton styles as they were in the version you liked) ... */
-/* Ensure .tagline has a good contrast against potential light streams */
+
 .tagline {
   font-family: 'EB Garamond', 'Georgia', serif;
   font-size: clamp(2.8rem, 8vw, 5rem); 
-  color: rgba(255, 255, 255, 0.95); /* Keep it bright */
+  color: rgba(255, 255, 255, 0.95); 
   margin-bottom: 60px; 
   font-weight: 500; 
   line-height: 1.2; 
   letter-spacing: 0.5px; 
   white-space: nowrap; 
-  text-shadow: 0 1px 3px rgba(0,0,0,0.5), 0 0 25px rgba(150, 180, 255, 0.2); /* Add a stronger dark shadow for pop */
+  text-shadow: 0 1px 3px rgba(0,0,0,0.7), 0 0 35px rgba(150, 180, 255, 0.3); /* Stronger shadow */
 }
 
 .searchForm { 
   display: flex; width: 100%; max-width: 700px; 
-  background-color: rgba(20, 22, 25, 0.8); /* Darker, less transparent surface */
-  border: 1px solid rgba(255, 255, 255, 0.1); 
+  background-color: rgba(20, 22, 25, 0.9); /* More opaque for better readability of placeholder */
+  border: 1px solid rgba(255, 255, 255, 0.15); 
   border-radius: 16px; overflow: hidden;
-  box-shadow: 0 12px 45px rgba(0, 0, 0, 0.6); 
-  backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+  box-shadow: 0 12px 45px rgba(0, 0, 0, 0.7); /* Stronger shadow */
+  backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); /* Reduced blur a bit if bg is busier */
 }
 
-/* ... (searchInput, searchButton, message, errorMessage, resultsContainer - ensure they are readable against the new effect) ... */
 .searchInput { flex-grow: 1; background-color: transparent; border: none; padding: 22px 30px; font-size: 1.25rem; font-family: 'Inter', sans-serif; outline: none; color: var(--text-color); }
-.searchInput::placeholder { color: var(--text-muted-color); opacity: 0.6; font-weight: 300; }
+.searchInput::placeholder { color: var(--text-muted-color); opacity: 0.8; font-weight: 300; } /* Placeholder more visible */
 .searchButton { border: none; background: linear-gradient(90deg, hsla(217, 100%, 55%, 1) 0%, hsla(190, 100%, 60%, 1) 100%); color: white; padding: 22px 40px; font-size: 1.15rem; font-family: 'Poppins', sans-serif; cursor: pointer; transition: opacity 0.2s ease, transform 0.2s ease; font-weight: 600; letter-spacing: 0.5px; }
 .searchButton:hover { opacity: 0.9; transform: scale(1.03); }
 .searchButton:disabled { background: var(--secondary-color); opacity: 0.7; cursor: not-allowed; transform: none; }
 
-.message { margin-top: 30px; padding: 12px 18px; border-radius: 6px; text-align: center; width: 100%; max-width: 700px; font-size: 1rem; background-color: rgba(30, 30, 30, 0.85); border: 1px solid rgba(255, 255, 255, 0.1); backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px); }
-.errorMessage { color: #ffacac; border-color: rgba(220, 53, 69, 0.5); background-color: rgba(220, 53, 69, 0.2); } /* Adjusted error bg */
+.message { margin-top: 30px; padding: 12px 18px; border-radius: 6px; text-align: center; width: 100%; max-width: 700px; font-size: 1rem; background-color: rgba(30, 30, 30, 0.9); border: 1px solid rgba(255, 255, 255, 0.1); backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px); }
+.errorMessage { color: #ffacac; border-color: rgba(220, 53, 69, 0.5); background-color: rgba(220, 53, 69, 0.2); }
 .resultsContainer { width: 100%; max-width: 1100px; margin-top: 60px; padding: 0 20px; }
 .resultsContainer h3 { font-size: 1.8rem; color: var(--text-color); margin-bottom: 25px; text-align: left; padding-left: 0; border-bottom: 1px solid var(--border-color); padding-bottom: 10px; }
