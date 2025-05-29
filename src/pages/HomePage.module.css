@@ -12,132 +12,86 @@
   overflow: hidden; 
 }
 
-/* --- BRIGHTER & MORE CENTERED STREAM EFFECT --- */
+/* --- BOLDER RIBBON STREAM EFFECT --- */
 .homePageContainer::before,
 .homePageContainer::after {
   content: '';
   position: absolute;
-  left: 50%; 
-  /* Start them vertically centered then offset with transform */
-  top: 50%; 
-  opacity: 0.4; /* INCREASED OPACITY SIGNIFICANTLY - Start here for tuning */
+  left: 0; 
   z-index: 0; 
   will-change: transform, opacity;
-  transform-origin: center center;
-  border-radius: 100px; 
+  transform-origin: center left; 
 }
 
-.homePageContainer::before { /* Stream 1 - Brighter Cyan/Blue */
-  width: 160vw; 
-  height: 100px; 
+.homePageContainer::before { /* Main Stream - Bolder & Brighter */
+  width: 170vw;  /* Kept it very wide */
+  height: 25px; /* INCREASED THICKNESS SIGNIFICANTLY */
   background: linear-gradient(
-    90deg,
-    hsla(190, 100%, 80%, 0) 0%,    /* Transparent start */
-    hsla(190, 95%, 65%, 0.7) 40%,  /* BRIGHTER & MORE OPAQUE CYAN CORE */
-    hsla(190, 95%, 65%, 0.7) 60%,
-    hsla(190, 100%, 80%, 0) 100%   /* Transparent end */
+    90deg, 
+    hsla(195, 100%, 80%, 0) 0%,    
+    hsla(195, 95%, 70%, 0.7) 30%,  /* INCREASED ALPHA FOR BRIGHTER CORE */
+    hsla(210, 95%, 70%, 0.6) 50%,  /* Added a mid-point color */
+    hsla(195, 95%, 70%, 0.7) 70%,
+    hsla(195, 100%, 80%, 0) 100%   
   );
-  filter: blur(15px); /* REDUCED BLUR for more definition */
-  animation: streamCenterFlowOne 22s infinite linear;
-  /* Initial transform: centered, then offset and rotated */
-  transform: translate(-50%, -50%) rotate(-30deg) skewX(-20deg); 
+  filter: blur(8px); /* INCREASED BLUR TO MATCH THICKNESS, BUT STILL DEFINED */
+  border-radius: 15px; /* Rounded ends for the thicker ribbon */
+  top: 48%; 
+  animation: ribbonFlowOne 25s infinite linear; 
+  box-shadow: 0 0 15px 4px hsla(195, 100%, 75%, 0.4), /* STRONGER GLOW */
+              0 0 30px 8px hsla(210, 100%, 75%, 0.25);
+  opacity: 0.25; /* INCREASED BASE OPACITY FOR THE STREAM */
 }
 
-.homePageContainer::after { /* Stream 2 - Brighter Deeper Blue */
-  width: 200vw;
-  height: 140px; 
-  background: linear-gradient(
-    90deg,
-    hsla(220, 100%, 85%, 0) 0%,
-    hsla(220, 90%, 70%, 0.6) 45%, /* BRIGHTER & MORE OPAQUE BLUE CORE */
-    hsla(220, 90%, 70%, 0.6) 55%,
-    hsla(220, 100%, 85%, 0) 100%
+.homePageContainer::after { /* Secondary, softer, broader energy wave - unchanged for now */
+  width: 220vw;
+  height: 150px; 
+  background: radial-gradient( 
+    ellipse at center,
+    hsla(210, 80%, 60%, 0.12) 0%, 
+    hsla(210, 80%, 60%, 0.05) 40%,
+    hsla(210, 80%, 60%, 0) 70%     
   );
-  filter: blur(25px); /* Slightly more blur than the first, but still defined */
-  animation: streamCenterFlowTwo 32s infinite linear;
-  transform: translate(-50%, -50%) rotate(20deg) skewX(15deg); /* Centered, then offset/rotated */
-  animation-delay: -8s;
+  filter: blur(60px); 
+  border-radius: 50%; 
+  top: 50%; 
+  transform: translateY(-50%); 
+  animation: ribbonWaveTwo 38s infinite ease-in-out alternate;
+  animation-delay: -7s;
+  opacity: 0.07; 
 }
 
-@keyframes streamCenterFlowOne {
-  0% {
-    /* Start from one side, passing through center */
-    transform: translate(-120vw, -50%) rotate(-30deg) skewX(-20deg); 
-    opacity: 0;
-  }
-  10% {
-     opacity: 0.4; /* Target opacity */
-  }
-  90% {
-     opacity: 0.4; /* Hold opacity */
-  }
-  100% {
-    /* End on the other side, passing through center */
-    transform: translate(120vw, -40%) rotate(-20deg) skewX(-20deg); 
-    opacity: 0;
-  }
+@keyframes ribbonFlowOne { 
+  0%   { transform: translateX(-110%) translateY(0vh) skewX(-25deg); opacity: 0; }
+  15%  { opacity: 0.25; } /* Target opacity for this stream */
+  85%  { opacity: 0.25; }
+  100% { transform: translateX(110vw) translateY(5vh) skewX(-15deg); opacity: 0; }
 }
 
-@keyframes streamCenterFlowTwo {
-  0% {
-    /* Start from other side, passing through center */
-    transform: translate(130vw, -50%) rotate(20deg) skewX(15deg); 
-    opacity: 0;
-  }
-  10% {
-     opacity: 0.35; /* Target opacity */
-  }
-  90% {
-     opacity: 0.35; /* Hold opacity */
-  }
-  100% {
-    /* End on the other side, passing through center */
-    transform: translate(-130vw, -60%) rotate(10deg) skewX(15deg); 
-    opacity: 0;
-  }
+@keyframes ribbonWaveTwo { 
+  0%   { transform: translateY(-50%) translateX(-30vw) scale(1) rotate(-5deg); opacity: 0.03; }
+  50%  { transform: translateY(-50%) translateX(10vw) scale(1.2) rotate(5deg); opacity: 0.08; }
+  100% { transform: translateY(-50%) translateX(-30vw) scale(1) rotate(-5deg); opacity: 0.03; }
 }
-/* --- END STREAM EFFECT BACKGROUND --- */
+/* --- END BOLDER RIBBON STREAM EFFECT --- */
 
 
 /* --- Content Styles (ensure they are on top with z-index: 1) --- */
-/* Keep .heroSection, .tagline, .searchForm, .searchInput, .searchButton, 
-   .message, .errorMessage, .resultsContainer styles from the previous "stylish" version.
-   The key is to ensure they ALL have 'position: relative; z-index: 1;'
-   if they are direct children of .homePageContainer or need to sit above the animation.
+/* .heroSection, .tagline, .searchForm, .message, .resultsContainer should all have:
+   position: relative; 
+   z-index: 1; 
 */
-.heroSection, .tagline, .searchForm, .message, .resultsContainer {
-  position: relative; 
-  z-index: 1;       
-}
-
-.tagline {
-  font-family: 'EB Garamond', 'Georgia', serif;
-  font-size: clamp(2.8rem, 8vw, 5rem); 
-  color: rgba(255, 255, 255, 0.95); 
-  margin-bottom: 60px; 
-  font-weight: 500; 
-  line-height: 1.2; 
-  letter-spacing: 0.5px; 
-  white-space: nowrap; 
-  text-shadow: 0 1px 3px rgba(0,0,0,0.7), 0 0 35px rgba(150, 180, 255, 0.3); /* Stronger shadow */
-}
-
-.searchForm { 
-  display: flex; width: 100%; max-width: 700px; 
-  background-color: rgba(20, 22, 25, 0.9); /* More opaque for better readability of placeholder */
-  border: 1px solid rgba(255, 255, 255, 0.15); 
-  border-radius: 16px; overflow: hidden;
-  box-shadow: 0 12px 45px rgba(0, 0, 0, 0.7); /* Stronger shadow */
-  backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); /* Reduced blur a bit if bg is busier */
-}
+.heroSection { width: 100%; max-width: 90vw; display: flex; flex-direction: column; align-items: center; text-align: center; position: relative; z-index: 1; }
+.tagline { font-family: 'EB Garamond', 'Georgia', serif; font-size: clamp(2.8rem, 8vw, 5rem); color: rgba(255, 255, 255, 0.95); margin-bottom: 60px; font-weight: 500; line-height: 1.2; letter-spacing: 0.5px; white-space: nowrap; text-shadow: 0 1px 2px rgba(0,0,0,0.7), 0 0 30px rgba(180, 200, 255, 0.2); position: relative; z-index: 1; }
+.searchForm { display: flex; width: 100%; max-width: 700px; background-color: rgba(20, 22, 25, 0.9); border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 16px; overflow: hidden; box-shadow: 0 12px 45px rgba(0, 0, 0, 0.7); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); position: relative; z-index: 1; }
 
 .searchInput { flex-grow: 1; background-color: transparent; border: none; padding: 22px 30px; font-size: 1.25rem; font-family: 'Inter', sans-serif; outline: none; color: var(--text-color); }
-.searchInput::placeholder { color: var(--text-muted-color); opacity: 0.8; font-weight: 300; } /* Placeholder more visible */
+.searchInput::placeholder { color: var(--text-muted-color); opacity: 0.6; font-weight: 300; }
 .searchButton { border: none; background: linear-gradient(90deg, hsla(217, 100%, 55%, 1) 0%, hsla(190, 100%, 60%, 1) 100%); color: white; padding: 22px 40px; font-size: 1.15rem; font-family: 'Poppins', sans-serif; cursor: pointer; transition: opacity 0.2s ease, transform 0.2s ease; font-weight: 600; letter-spacing: 0.5px; }
 .searchButton:hover { opacity: 0.9; transform: scale(1.03); }
 .searchButton:disabled { background: var(--secondary-color); opacity: 0.7; cursor: not-allowed; transform: none; }
 
-.message { margin-top: 30px; padding: 12px 18px; border-radius: 6px; text-align: center; width: 100%; max-width: 700px; font-size: 1rem; background-color: rgba(30, 30, 30, 0.9); border: 1px solid rgba(255, 255, 255, 0.1); backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px); }
-.errorMessage { color: #ffacac; border-color: rgba(220, 53, 69, 0.5); background-color: rgba(220, 53, 69, 0.2); }
-.resultsContainer { width: 100%; max-width: 1100px; margin-top: 60px; padding: 0 20px; }
+.message { margin-top: 30px; padding: 12px 18px; border-radius: 6px; text-align: center; width: 100%; max-width: 700px; font-size: 1rem; background-color: rgba(30, 30, 30, 0.9); border: 1px solid rgba(255, 255, 255, 0.1); backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px); position: relative; z-index: 1;}
+.errorMessage { color: #ffacac; border-color: rgba(220, 53, 69, 0.5); background-color: rgba(220, 53, 69, 0.2); position: relative; z-index: 1;}
+.resultsContainer { width: 100%; max-width: 1100px; margin-top: 60px; padding: 0 20px; position: relative; z-index: 1;}
 .resultsContainer h3 { font-size: 1.8rem; color: var(--text-color); margin-bottom: 25px; text-align: left; padding-left: 0; border-bottom: 1px solid var(--border-color); padding-bottom: 10px; }
