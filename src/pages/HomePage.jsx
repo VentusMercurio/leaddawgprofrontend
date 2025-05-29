@@ -1,29 +1,40 @@
 // src/pages/HomePage.jsx
-import React, { useState, useEffect /* Add useEffect if needed for other things later */ } from 'react';
+import React, { useState, useEffect } from 'react';
 import styles from './HomePage.module.css';
 import axios from 'axios';
 
-// --- Lead Card Component (New) ---
-// This will represent a single lead item, used for both featured and list views
+// --- Lead Card Component (UPDATED) ---
 const LeadCard = ({ place, isFeatured = false }) => {
-  // Placeholder for an image - in the future, this could be a real image URL
-  const placeholderImageUrl = `https://via.placeholder.com/600x400.png?text=${encodeURIComponent(place.name || 'Venue')}`;
-  // For featured, use a larger image placeholder, for list items, smaller
-  const imageSize = isFeatured ? { width: '100%', height: '250px' } : { width: '120px', height: '80px' };
+  // Use the photo_url from the place data if available, otherwise fallback to placeholder
+  const imageUrl = place.photo_url 
+                 ? place.photo_url 
+                 : `https://via.placeholder.com/600x400.png?text=${encodeURIComponent(place.name || 'Venue')}`;
+  
+  // For list items, we might not show the image or show a smaller one.
+  // Current CSS has .cardImagePlaceholder hidden for non-featured.
+  // If you want small images for list items, you'd adjust CSS and JSX here.
 
   return (
     <div className={isFeatured ? styles.featuredLeadCard : styles.listLeadCard}>
-      {/* Image Placeholder - visible more for featured */}
       {isFeatured && (
-        <div className={styles.cardImagePlaceholder} style={{ backgroundImage: `url(${placeholderImageUrl})` }}>
-          {/* <img src={placeholderImageUrl} alt={place.name || 'Venue Image'} /> */}
+        <div className={styles.cardImageContainer}> {/* Changed class for clarity */}
+          <img 
+            src={imageUrl} 
+            alt={place.name || 'Venue image'} 
+            className={styles.cardImage} // New class for the img tag
+            onError={(e) => { 
+              // Fallback if the image URL fails to load (e.g., broken link from API)
+              e.target.onerror = null; // Prevents looping if placeholder also fails
+              e.target.src = `https://via.placeholder.com/600x400.png?text=${encodeURIComponent(place.name || 'Error Loading Image')}`;
+            }}
+          />
         </div>
       )}
       
       <div className={styles.cardContent}>
         <h4 className={styles.cardName}>{place.name || 'N/A'}</h4>
         <p className={styles.cardAddress}>{place.address || 'N/A'}</p>
-        {/* Add more details here as needed, or a "View Details" button */}
+        
         {isFeatured && place.phone_number && (
           <p className={styles.cardPhone}>Phone: {place.phone_number}</p>
         )}
@@ -31,10 +42,9 @@ const LeadCard = ({ place, isFeatured = false }) => {
            <p className={styles.cardWebsite}><a href={place.website} target="_blank" rel="noopener noreferrer">Visit Website</a></p>
         )}
         
-        {/* Action buttons */}
         <div className={styles.cardActions}>
           <button className={styles.saveLeadButton}>Save to My Leads</button>
-          {/* Add more actions later, e.g., "View Details" that opens a modal */}
+          {/* Add "View Details" later */}
         </div>
       </div>
     </div>
@@ -42,42 +52,32 @@ const LeadCard = ({ place, isFeatured = false }) => {
 };
 
 
-// --- SearchResults Component (Modified) ---
+// --- SearchResults Component (No change from your last good version) ---
 const SearchResults = ({ results, loading, error }) => {
+  // ... (This component's logic for slicing results and mapping to LeadCard remains the same)
   if (loading) return <p className={styles.loadingMessage}>✨ Finding top spots for you...</p>;
-  // Error and no results handling will be done in HomePage now for better layout control
-
   if (!results || results.length === 0) return null;
 
   const featuredResult = results[0];
-  const otherResults = results.slice(1, 5); // Show next 4 results (total 5 visible)
+  const otherResults = results.slice(1, 5); 
 
   return (
     <div className={styles.resultsDisplayContainer}>
-      {/* Optional: Section for a small map placeholder (for future) */}
-      {/* <div className={styles.mapPlaceholder}>Map Area (Coming Soon!)</div> */}
-
       <div className={styles.leadsLayout}>
-        {/* Featured Lead Section */}
         {featuredResult && (
           <div className={styles.featuredLeadSection}>
-            {/* <h3>Top Match:</h3> */}
             <LeadCard place={featuredResult} isFeatured={true} />
           </div>
         )}
-
-        {/* List of Other Leads Section */}
         {otherResults.length > 0 && (
           <div className={styles.otherLeadsSection}>
-            {/* <h4>More Places:</h4> */}
             {otherResults.map(place => (
               <LeadCard key={place.google_place_id || place.name} place={place} isFeatured={false} />
             ))}
           </div>
         )}
       </div>
-
-      {results.length > 5 && ( // If more than 5 results were fetched from backend
+      {results.length > 5 && (
         <div className={styles.proTeaser}>
           <p>Want to see all {results.length} results and unlock full details?</p>
           <button className={styles.proButton}>Go Pro!</button>
@@ -88,16 +88,17 @@ const SearchResults = ({ results, loading, error }) => {
 };
 
 
-// --- HomePage Component (Main) ---
+// --- HomePage Component (No change from your last good version, only the LeadCard within it is updated) ---
 function HomePage() {
+  // ... (useState for query, searchResults, isLoading, searchError, hasSearched - all same)
+  // ... (handleSearchSubmit function - all same)
   const [query, setQuery] = useState('');
   const [searchResults, setSearchResults] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [searchError, setSearchError] = useState('');
-  const [hasSearched, setHasSearched] = useState(false); // To track if a search has been made
+  const [hasSearched, setHasSearched] = useState(false);
 
   const handleSearchSubmit = async (event) => {
-    // ... (handleSearchSubmit logic remains the same as previous version)
     event.preventDefault();
     if (!query.trim()) { setSearchError('Please enter a search term.'); return; }
     setIsLoading(true); setSearchError(''); setSearchResults([]); setHasSearched(true);
@@ -135,7 +136,6 @@ function HomePage() {
         </form>
       </header>
 
-      {/* Display Area: Error, Loading, or Results */}
       <div className={styles.resultsArea}>
         {isLoading && <p className={styles.loadingMessage}>✨ Finding top spots for you...</p>}
         {!isLoading && searchError && <p className={`${styles.message} ${styles.errorMessage}`}>{searchError}</p>}

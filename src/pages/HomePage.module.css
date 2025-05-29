@@ -212,12 +212,12 @@
   overflow-y: auto; /* Add scroll if content overflows max-height */
 }
 
-/* --- Lead Card Styles --- */
+/* --- Lead Card Styles (Update image related parts) --- */
 .featuredLeadCard, .listLeadCard {
   background-color: var(--bg-surface);
   border-radius: 12px;
   box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
-  overflow: hidden; /* To clip image if it's part of the card bg */
+  overflow: hidden; 
   display: flex;
   flex-direction: column;
   color: var(--text-color);
@@ -229,36 +229,36 @@
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
 }
 
-.featuredLeadCard {
-  /* Specific styles if different from list card */
+/* Styles for the image container in the featured card */
+.cardImageContainer { /* New class for the div wrapping the img */
+  width: 100%;
+  height: 220px; /* Or desired height for featured image */
+  overflow: hidden; /* Ensure image doesn't break out of rounded corners if card is rounded */
+  background-color: #282c34; /* Dark placeholder color if image is loading/missing */
 }
+
+.cardImage { /* Styles for the actual <img> tag */
+  width: 100%;
+  height: 100%;
+  object-fit: cover; /* Scales the image to maintain aspect ratio while filling the element’s entire content box */
+  display: block; /* Remove extra space below image */
+}
+
 
 .listLeadCard {
-  flex-direction: row; /* For smaller list items: image left, content right */
-  align-items: center; /* If using an image next to content */
+  flex-direction: row; 
+  align-items: center; 
+  /* If you want small images for list items in the future:
+  .listLeadCard .cardImageContainer { 
+    width: 100px; height: 70px; flex-shrink: 0; margin-right: 15px; border-radius: 8px; 
+  }
+  .listLeadCard .cardImage { border-radius: 8px; }
+  */
 }
-
-.cardImagePlaceholder {
-  width: 100%; /* For featured card */
-  height: 220px; /* Adjust height for featured image */
-  background-color: #333; /* Placeholder color */
-  background-size: cover;
-  background-position: center;
-  /* border-bottom: 1px solid var(--border-color); */ /* If image is on top */
-}
-
-.listLeadCard .cardImagePlaceholder { /* For list items - not used in current LeadCard structure */
-  width: 100px;
-  height: 70px;
-  flex-shrink: 0;
-  margin-right: 15px;
-  border-radius: 8px 0 0 8px; /* Round corners if image is on left */
-}
-
 
 .cardContent {
   padding: 20px;
-  flex-grow: 1; /* Allows content to fill space if card has fixed height */
+  flex-grow: 1; 
 }
 
 .featuredLeadCard .cardContent {
@@ -289,29 +289,25 @@
   color: var(--text-muted-color);
   margin-bottom: 5px;
 }
-.cardWebsite a {
-  color: var(--primary-color);
-}
-.cardWebsite a:hover {
-  text-decoration: underline;
-}
+.cardWebsite a { color: var(--primary-color); }
+.cardWebsite a:hover { text-decoration: underline; }
 
 .cardActions {
-  margin-top: 15px;
+  margin-top: auto; /* Push actions to the bottom of the card content */
   padding-top: 15px;
   border-top: 1px solid var(--border-color);
   display: flex;
   gap: 10px;
 }
 
-.listLeadCard .cardActions { /* Simpler actions for list items if needed */
+.listLeadCard .cardActions { 
   margin-top: 10px;
   padding-top: 10px;
 }
 
-.saveLeadButton {
+.saveLeadButton { /* Style as desired */
   background-color: var(--accent-color);
-  color: #111; /* Dark text on yellow */
+  color: #111; 
   border: none;
   padding: 8px 15px;
   border-radius: 6px;
@@ -324,8 +320,7 @@
   background-color: var(--accent-hover-color);
 }
 
-/* Pro Teaser Styles */
-.proTeaser {
+/* Pro Teaser Styles (no change needed from previous) */.proTeaser {
   margin-top: 40px;
   padding: 25px;
   background-color: var(--bg-surface);
