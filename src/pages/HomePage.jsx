@@ -3,33 +3,46 @@ import React, { useState, useEffect, useCallback } from 'react';
 import styles from './HomePage.module.css';
 import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
-import { useNavigate, Link } from 'react-router-dom'; // Make sure Link is imported
+import { useNavigate, Link } from 'react-router-dom';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5002';
+
+// --- Helper Function (Moved outside LeadCard) ---
+const getInitials = (name, isLarge = false) => {
+  if (!name) return isLarge ? "N/A" : "NA";
+  const words = name.split(' ');
+  if (words.length >= 2) {
+    return (words[0][0] + words[1][0]).toUpperCase();
+  } else if (words.length === 1 && name.length >= 2) {
+    return (name.substring(0,2)).toUpperCase();
+  } else if (name.length > 0) {
+    return name[0].toUpperCase();
+  }
+  return isLarge ? "N/A" : "NA";
+};
 
 // --- LeadCard Component ---
 const LeadCard = ({ place, isFeatured = false, onClickCard, onSaveLead, isLeadSaved, isSavingLead }) => {
   const placeholderText = encodeURIComponent(place.name || 'Venue');
-  const featuredPlaceholder = `https://via.placeholder.com/600x300.png/2a2a2e/ffffff?text=FP:${placeholderText}`;
-  const listPlaceholder = `https://via.placeholder.com/100x75.png/2a2a2e/ffffff?text=LP:${placeholderText}`;
+  const featuredPlaceholderInitials = <div className={styles.initialsPlaceholder}><span>{getInitials(place.name, true)}</span></div>;
+  const listPlaceholderInitials = <div className={styles.initialsPlaceholderSmall}><span>{getInitials(place.name, false)}</span></div>;
 
-  const [currentImageSrc, setCurrentImageSrc] = useState(isFeatured ? featuredPlaceholder : listPlaceholder);
+  const [currentImageSrc, setCurrentImageSrc] = useState(null);
   const [imageLoadFailed, setImageLoadFailed] = useState(false);
 
   useEffect(() => {
-    let determinedSrc = isFeatured ? featuredPlaceholder : listPlaceholder;
+    let determinedSrc = null; // Default to no image initially
     if (place.photo_url && typeof place.photo_url === 'string' && place.photo_url.trim() !== '') {
       determinedSrc = place.photo_url;
     }
     setCurrentImageSrc(determinedSrc);
     setImageLoadFailed(false);
-  }, [place.photo_url, place.name, isFeatured, featuredPlaceholder, listPlaceholder]);
+  }, [place.photo_url, place.name]);
 
   const handleImageError = () => {
     if (!imageLoadFailed) {
-      console.warn(`IMAGE LOAD ERROR for "${place.name}". Attempted src:`, currentImageSrc, "Will use placeholder.");
+      console.warn(`IMAGE LOAD ERROR for "${place.name}". Attempted src:`, currentImageSrc);
       setImageLoadFailed(true);
-      setCurrentImageSrc(isFeatured ? featuredPlaceholder : listPlaceholder);
     }
   };
 
@@ -40,8 +53,26 @@ const LeadCard = ({ place, isFeatured = false, onClickCard, onSaveLead, isLeadSa
   };
   
   const cardClassName = isFeatured ? styles.featuredLeadCard : styles.listLeadCard;
-  const finalDisplaySrc = imageLoadFailed ? (isFeatured ? featuredPlaceholder : listPlaceholder) : currentImageSrc;
-  const showImageVisual = isFeatured || (!isFeatured && place.photo_url && typeof place.photo_url === 'string' && place.photo_url.trim() !== '');
+  
+  const showImageVisualInList = !isFeatured && place.photo_url && typeof place.photo_url === 'string' && place.photo_url.trim() !== '';
+  const showImageContainer = isFeatured || showImageVisualInList;
+
+  // Determine what to display: real image or initials placeholder
+  let imageDisplayElement;
+  if (currentImageSrc && !imageLoadFailed) {
+    imageDisplayElement = (
+      <img 
+        key={currentImageSrc} 
+        src={currentImageSrc} 
+        alt={`${place.name || 'Venue'} image`} 
+        className={styles.cardImage}
+        onLoad={handleImageLoad}
+        onError={handleImageError} 
+      />
+    );
+  } else {
+    imageDisplayElement = isFeatured ? featuredPlaceholderInitials : listPlaceholderInitials;
+  }
 
   return (
     <div 
@@ -50,16 +81,9 @@ const LeadCard = ({ place, isFeatured = false, onClickCard, onSaveLead, isLeadSa
       style={!isFeatured && onClickCard ? { cursor: 'pointer' } : {}}
       title={!isFeatured && onClickCard ? `View details for ${place.name}` : ''}
     >
-      {showImageVisual && (
+      {showImageContainer && ( // Only show container if featured OR list item has an image to try/show initials for
         <div className={isFeatured ? styles.cardImageContainer : styles.listCardImageContainer}>
-          <img 
-            key={finalDisplaySrc} 
-            src={finalDisplaySrc} 
-            alt={`${place.name || 'Venue'} image`} 
-            className={styles.cardImage}
-            onLoad={handleImageLoad}
-            onError={handleImageError} 
-          />
+          {imageDisplayElement}
         </div>
       )}
       
@@ -96,24 +120,17 @@ const LeadCard = ({ place, isFeatured = false, onClickCard, onSaveLead, isLeadSa
   );
 };
 
-// --- SearchResults Component (MODIFIED "Go Pro!" button to be a Link) ---
+// --- SearchResults Component ---
 const SearchResults = ({ allResults, featuredLead, onSelectLead, onSaveLead, savedLeadIds, savingLeadId }) => {
-  if (!featuredLead && (!allResults || allResults.length === 0)) { // Check allResults too
+  if (!featuredLead && (!allResults || allResults.length === 0)) {
       return null; 
   }
-  
-  // Ensure featuredLead exists before trying to access its properties for filtering
   const featuredLeadId = featuredLead ? featuredLead.google_place_id : null;
-
   const otherLeads = allResults
     .filter(p => p.google_place_id !== featuredLeadId) 
     .slice(0, 4);
-
-  // Determine if the "Go Pro" teaser should be shown
-  // It shows if the total number of API results is greater than what we are displaying (1 featured + up to 4 others)
   const displayedCount = (featuredLead ? 1 : 0) + otherLeads.length;
   const showProTeaser = allResults.length > displayedCount && allResults.length > 0;
-
 
   return (
     <div className={styles.resultsDisplayContainer}>
@@ -137,7 +154,6 @@ const SearchResults = ({ allResults, featuredLead, onSelectLead, onSaveLead, sav
                 place={place} 
                 isFeatured={false} 
                 onClickCard={onSelectLead}
-                // Not passing save props to list items as per current design
               />
             ))}
           </div>
@@ -146,7 +162,7 @@ const SearchResults = ({ allResults, featuredLead, onSelectLead, onSaveLead, sav
       {showProTeaser && ( 
         <div className={styles.proTeaser}>
           <p>Want to see all {allResults.length} results and unlock full details?</p>
-          <Link to="/pricing" className={styles.proButton}> {/* CHANGED TO LINK */}
+          <Link to="/pricing" className={styles.proButton}>
             Go Pro!
           </Link>
         </div>
@@ -155,22 +171,53 @@ const SearchResults = ({ allResults, featuredLead, onSelectLead, onSaveLead, sav
   );
 };
 
-
 // --- HomePage Component ---
 function HomePage() {
-  const [query, setQuery] = useState('');
-  const [allSearchResults, setAllSearchResults] = useState([]);
-  const [selectedLead, setSelectedLead] = useState(null);
+  const [query, setQuery] = useState(() => sessionStorage.getItem('leadDawg_searchQuery') || '');
+  const [allSearchResults, setAllSearchResults] = useState(() => {
+    const storedResults = sessionStorage.getItem('leadDawg_allSearchResults');
+    return storedResults ? JSON.parse(storedResults) : [];
+  });
+  const [selectedLead, setSelectedLead] = useState(() => {
+    const storedSelectedLead = sessionStorage.getItem('leadDawg_selectedLead');
+    return storedSelectedLead ? JSON.parse(storedSelectedLead) : null;
+  });
+  const [hasSearched, setHasSearched] = useState(() => {
+    return sessionStorage.getItem('leadDawg_hasSearched') === 'true';
+  });
+  
   const [isLoading, setIsLoading] = useState(false);
   const [searchError, setSearchError] = useState('');
-  const [hasSearched, setHasSearched] = useState(false);
-
-  const { isLoggedIn } = useAuth(); 
-  const navigate = useNavigate();   
-
+  
+  const { isLoggedIn } = useAuth();
+  const navigate = useNavigate();
   const [savedLeadIdsThisSearch, setSavedLeadIdsThisSearch] = useState([]);
-  const [savingLeadId, setSavingLeadId] = useState(null); 
+  const [savingLeadId, setSavingLeadId] = useState(null);
   const [userSavedLeadGoogleIds, setUserSavedLeadGoogleIds] = useState(new Set());
+
+  useEffect(() => {
+    sessionStorage.setItem('leadDawg_searchQuery', query);
+  }, [query]);
+
+  useEffect(() => {
+    if (allSearchResults.length > 0) {
+      sessionStorage.setItem('leadDawg_allSearchResults', JSON.stringify(allSearchResults));
+    } else {
+      sessionStorage.removeItem('leadDawg_allSearchResults');
+    }
+  }, [allSearchResults]);
+
+  useEffect(() => {
+    if (selectedLead) {
+      sessionStorage.setItem('leadDawg_selectedLead', JSON.stringify(selectedLead));
+    } else {
+      sessionStorage.removeItem('leadDawg_selectedLead');
+    }
+  }, [selectedLead]);
+
+  useEffect(() => {
+    sessionStorage.setItem('leadDawg_hasSearched', hasSearched.toString());
+  }, [hasSearched]);
 
   const fetchUserSavedLeadIds = useCallback(async () => {
     if (isLoggedIn) {
@@ -192,22 +239,36 @@ function HomePage() {
 
   const handleSearchSubmit = async (event) => {
     event.preventDefault();
-    if (!query.trim()) { setSearchError('Please enter a search term.'); setAllSearchResults([]); setSelectedLead(null); setHasSearched(true); return; }
-    setIsLoading(true); setSearchError(''); setAllSearchResults([]); setSelectedLead(null); setHasSearched(true);
+    const currentQuery = query.trim();
+    if (!currentQuery) { 
+      setSearchError('Please enter a search term.'); 
+      setAllSearchResults([]); 
+      setSelectedLead(null); 
+      setHasSearched(true);
+      return; 
+    }
+    
+    setIsLoading(true); 
+    setSearchError(''); 
+    setAllSearchResults([]); 
+    setSelectedLead(null);  
+    setHasSearched(true);
     setSavedLeadIdsThisSearch([]); 
     
     try {
-      const response = await axios.get(`${API_BASE_URL}/api/search/places`, { params: { query: query } });
+      const response = await axios.get(`${API_BASE_URL}/api/search/places`, { params: { query: currentQuery } });
       if (response.data && response.data.status === "OK" && response.data.places.length > 0) {
         setAllSearchResults(response.data.places);
         setSelectedLead(response.data.places[0]);
-      } else if (response.data && (response.data.status === "ZERO_RESULTS" || response.data.places.length === 0)) {
-        setSearchError(`No leads found for "${query}". Try different keywords!`);
       } else {
-        setSearchError(response.data.message || 'An error occurred while fetching leads.');
+        setAllSearchResults([]); 
+        setSelectedLead(null);
+        setSearchError(`No leads found for "${currentQuery}". Try different keywords!`);
       }
     } catch (err) {
       console.error("Search API error:", err);
+      setAllSearchResults([]); 
+      setSelectedLead(null);
       setSearchError(err.response?.data?.message || err.message || 'Failed to connect to the search service.');
     } finally {
       setIsLoading(false);
@@ -280,10 +341,10 @@ function HomePage() {
         {!isLoading && !searchError && hasSearched && allSearchResults.length === 0 && (
           <p className={styles.message}>🤔 No leads found for "{query}". Try a different search!</p>
         )}
-        {!isLoading && !searchError && selectedLead && (
+        {!isLoading && !searchError && (selectedLead || (hasSearched && allSearchResults.length > 0)) && (
           <SearchResults 
             allResults={allSearchResults} 
-            featuredLead={selectedLead}
+            featuredLead={selectedLead || (allSearchResults.length > 0 ? allSearchResults[0] : null)}
             onSelectLead={handleSelectLeadFromList}
             onSaveLead={handleSaveLead}
             savedLeadIds={[...savedLeadIdsThisSearch, ...Array.from(userSavedLeadGoogleIds)]}
