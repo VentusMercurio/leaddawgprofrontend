@@ -1,13 +1,15 @@
 // src/App.jsx
 import React from 'react';
-import { Routes, Route, NavLink, useNavigate } from 'react-router-dom'; // Use NavLink for active class
+import { Routes, Route, NavLink, useNavigate } from 'react-router-dom';
 import HomePage from './pages/HomePage';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import DashboardPage from './pages/DashboardPage';
+import PricingPage from './pages/PricingPage'; // Make sure this is imported
+import PaymentSuccessPage from './pages/PaymentSuccessPage'; // << IMPORT THIS
+import PaymentCancelPage from './pages/PaymentCancelPage';   // << IMPORT THIS (if you use a dedicated cancel page)
 import NotFoundPage from './pages/NotFoundPage';
-import { useAuth } from './context/AuthContext'; // Import useAuth
-import PricingPage from './pages/PricingPage'; // Import the new page
+import { useAuth } from './context/AuthContext';
 import './App.css';
 
 function App() {
@@ -16,11 +18,11 @@ function App() {
 
   const handleLogout = async () => {
     await logout();
-    navigate('/'); // Redirect to home after logout
+    navigate('/'); 
   };
 
   if (isLoadingAuth) {
-    return <div style={{display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', backgroundColor: '#121212', color: 'white', fontSize: '1.5rem'}}>Loading Application...</div>; // Or a proper spinner component
+    return <div style={{display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', backgroundColor: '#121212', color: 'white', fontSize: '1.5rem'}}>Loading Application...</div>;
   }
 
   return (
@@ -31,11 +33,11 @@ function App() {
           {isLoggedIn ? (
             <>
               <NavLink to="/dashboard" className="nav-link">My Leads</NavLink>
-              {/* <NavLink to="/profile" className="nav-link">Profile</NavLink> */}
               <button onClick={handleLogout} className="nav-link-button">Logout ({currentUser?.username})</button>
             </>
           ) : (
             <>
+              <NavLink to="/pricing" className="nav-link">Pricing</NavLink> {/* Added Pricing Link */}
               <NavLink to="/login" className="nav-link">Login</NavLink>
               <NavLink to="/register" className="nav-link">Sign Up</NavLink>
             </>
@@ -48,9 +50,11 @@ function App() {
           <Route path="/" element={<HomePage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
-          {/* Basic Dashboard route for now, will add protection later */}
-          <Route path="/pricing" element={<PricingPage />} /> {/* ADD THIS ROUTE */}
           <Route path="/dashboard" element={<DashboardPage />} /> 
+          <Route path="/pricing" element={<PricingPage />} />
+          <Route path="/payment-success" element={<PaymentSuccessPage />} /> {/* << ADD THIS ROUTE */}
+          <Route path="/payment-canceled" element={<PaymentCancelPage />} /> {/* << ADD THIS IF YOUR CANCEL URL IS THIS */}
+          {/* Or if cancel URL is /pricing?canceled=true, PricingPage handles it */}
           <Route path="*" element={<NotFoundPage />} />
         </Routes>
       </div>
