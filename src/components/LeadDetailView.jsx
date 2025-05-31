@@ -2,6 +2,9 @@
 import React, { useState, useEffect } from 'react';
 import styles from './LeadDetailView.module.css';
 
+// Ensure API_BASE_URL is correctly defined or imported if it's in a central config
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5002';
+
 const STATUS_OPTIONS = ["New", "Contacted", "Followed Up", "Interested", "Booked", "Not Interested", "Pending"];
 
 // Helper function to generate the LA Dawgz Pitch
@@ -34,6 +37,16 @@ LA Dawgz
 [YOUR_LA_DAWGZ_WEBSITE_OR_INSTAGRAM_LINK_HERE_AGAIN_OR_EMAIL]`;
 };
 
+// Helper to generate initials
+const getInitialsForPlaceholder = (name) => {
+  if (!name) return "N/A";
+  const words = name.split(' ');
+  if (words.length >= 2) return (words[0][0] + words[1][0]).toUpperCase();
+  if (words.length === 1 && name.length >= 2) return (name.substring(0,2)).toUpperCase();
+  if (name.length > 0) return name[0].toUpperCase();
+  return "N/A";
+};
+
 
 function LeadDetailView({ lead, onClose, onUpdateLead, onDeleteLead }) {
   const [currentNotes, setCurrentNotes] = useState('');
@@ -41,9 +54,14 @@ function LeadDetailView({ lead, onClose, onUpdateLead, onDeleteLead }) {
   const [isEditingNotes, setIsEditingNotes] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  
   const [showPitchTemplate, setShowPitchTemplate] = useState(false);
   const [pitchText, setPitchText] = useState('');
   const [pitchCopied, setPitchCopied] = useState(false);
+
+  // State for the header image
+  const [headerImageSrc, setHeaderImageSrc] = useState('');
+  const [headerImageError, setHeaderImageError] = useState(false);
 
   useEffect(() => {
     if (lead) {
@@ -53,12 +71,19 @@ function LeadDetailView({ lead, onClose, onUpdateLead, onDeleteLead }) {
       setPitchText(generateLaDawgzPitch(lead.name_at_save));
       setShowPitchTemplate(false);
       setPitchCopied(false);
+
+      // Set up header image source
+      if (lead.photo_url && typeof lead.photo_url === 'string' && lead.photo_url.trim() !== '') {
+        setHeaderImageSrc(`${API_BASE_URL}/api/search/image-proxy?url=${encodeURIComponent(lead.photo_url)}`);
+      } else {
+        setHeaderImageSrc(''); // No original photo_url, will use initials placeholder
+      }
+      setHeaderImageError(false); // Reset error state for new lead
     } else {
-      setCurrentNotes('');
-      setCurrentStatus('New');
-      setPitchText('');
-      setShowPitchTemplate(false);
-      setPitchCopied(false);
+      // Reset all when lead is null (modal closed or no lead)
+      setCurrentNotes(''); setCurrentStatus('New'); setPitchText('');
+      setShowPitchTemplate(false); setPitchCopied(false);
+      setHeaderImageSrc(''); setHeaderImageError(false);
     }
   }, [lead]);
 
@@ -71,24 +96,18 @@ function LeadDetailView({ lead, onClose, onUpdateLead, onDeleteLead }) {
     const updates = { user_notes: currentNotes, user_status: currentStatus };
     const success = await onUpdateLead(lead.id, updates);
     setIsSaving(false);
-    if (success) {
-      setIsEditingNotes(false); 
-    }
-    // Optionally: onClose(); 
+    if (success) setIsEditingNotes(false);
   };
 
   const handleDelete = async () => {
     if (window.confirm(`Are you sure you want to delete ${lead.name_at_save}? This cannot be undone.`)) {
       setIsDeleting(true);
-      await onDeleteLead(lead.id); 
-      // Parent (DashboardPage) will handle closing the modal by setting selectedLeadForDetail to null
-      // So setIsDeleting(false) might not be strictly necessary if component unmounts.
+      await onDeleteLead(lead.id);
+      // Parent (DashboardPage) will handle closing by setting its selected lead to null
+    } else {
+      setIsDeleting(false); // Ensure isDeleting is false if user cancels confirm dialog
     }
   };
-
-  const placeholderText = encodeURIComponent(lead.name_at_save || 'Venue');
-  // Using a generic placeholder for the detail view header image
-  const heroImageUrl = lead.photo_url || `https://via.placeholder.com/1200x400.png/1a1a1a/555555?text=Image%20for%20${placeholderText}`;
   
   const googleMapsLink = lead.google_maps_url || 
     (lead.address_at_save ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(lead.address_at_save)}` : null);
@@ -103,35 +122,41 @@ function LeadDetailView({ lead, onClose, onUpdateLead, onDeleteLead }) {
     });
   };
 
-  const handleHeaderImageError = (e) => {
-    e.target.onerror = null; // Prevent infinite loop
-    e.target.style.backgroundImage = `url(https://via.placeholder.com/1200x400.png/1a1a1a/555555?text=Image%20Unavailable%20for%20${placeholderText})`;
-    // Or set to a solid color, or hide
-    // e.target.style.backgroundColor = '#22252a';
-    // e.target.style.backgroundImage = 'none';
+  const handleHeaderImageError = () => {
+    if (!headerImageError) { // Prevent potential loops
+        console.warn(`HEADER IMAGE LOAD ERROR for "${lead.name_at_save}". Attempted src:`, headerImageSrc);
+        setHeaderImageError(true);
+    }
   };
-
+  
+  const handleHeaderImageLoad = () => {
+    // If it was previously errored and now loads, reset error state
+    if (headerImageError && headerImageSrc === `${API_BASE_URL}/api/search/image-proxy?url=${encodeURIComponent(lead.photo_url)}`) {
+        setHeaderImageError(false);
+    }
+  };
 
   return (
     <div className={styles.overlay}>
       <div className={styles.viewContainer}>
         <button onClick={onClose} className={styles.closeButtonTopRight} title="Close Details">×</button>
 
-        {/* For headerImage, if using <img> tag, it's simpler. For background-image, error handling is tricky.
-            Let's use an <img> tag within the div for better error handling.
-        */}
         <div className={styles.headerImageContainer}>
-            <img 
-                src={heroImageUrl} 
-                alt={`${lead.name_at_save || 'Header'} image`} 
-                className={styles.headerActualImage}
-                onError={(e) => {
-                    e.target.onerror = null;
-                    e.target.src = `https://via.placeholder.com/1200x400.png/1a1a1a/555555?text=Image%20Error%20for%20${placeholderText}`;
-                }}
-            />
+            {headerImageSrc && !headerImageError ? (
+                <img 
+                    key={headerImageSrc} // Add key to help React re-render if src changes
+                    src={headerImageSrc} 
+                    alt={`${lead.name_at_save || 'Header'} image`} 
+                    className={styles.headerActualImage}
+                    onLoad={handleHeaderImageLoad}
+                    onError={handleHeaderImageError}
+                />
+            ) : (
+                <div className={styles.initialsPlaceholderHeader}>
+                    <span>{getInitialsForPlaceholder(lead.name_at_save)}</span>
+                </div>
+            )}
         </div>
-
 
         <div className={styles.mainContent}>
           <div className={styles.titleSection}>
@@ -147,7 +172,7 @@ function LeadDetailView({ lead, onClose, onUpdateLead, onDeleteLead }) {
               </select>
               <button 
                 onClick={() => {
-                    if (lead && lead.name_at_save && pitchText.includes("[Venue Name]") && !pitchText.includes(lead.name_at_save)) {
+                    if (lead && lead.name_at_save && (pitchText.includes("[Venue Name]") || !pitchText.startsWith("Subject:"))) {
                          setPitchText(generateLaDawgzPitch(lead.name_at_save));
                     }
                     setShowPitchTemplate(!showPitchTemplate);
@@ -171,7 +196,7 @@ function LeadDetailView({ lead, onClose, onUpdateLead, onDeleteLead }) {
                 placeholder="Your generated pitch will appear here..."
               />
               <button onClick={handleCopyPitchText} className={styles.copyPitchButton}> 
-                {pitchCopied ? 'Copied to Clipboard ✓' : 'Copy Pitch Text'}
+                {pitchCopied ? 'Copied ✓' : 'Copy Pitch Text'}
               </button>
             </div>
           )}
@@ -184,14 +209,14 @@ function LeadDetailView({ lead, onClose, onUpdateLead, onDeleteLead }) {
           </div>
 
           <div className={styles.yelpSection}>
-            <h4>Yelp Insights (Coming Soon!)</h4> {/* Corrected h4 tag */}
+            <h4>Yelp Insights (Coming Soon!)</h4>
             <div className={styles.yelpPlaceholder}><p>Yelp Rating: N/A</p><p>Review Snippets: N/A</p></div>
           </div>
           
           <div className={styles.notesSection}>
             <h4>Your Notes {isEditingNotes && <span style={{fontSize: '0.8em', fontWeight: 'normal'}}>(Editing)</span>}</h4>
             {isEditingNotes ? (
-              <textarea value={currentNotes} onChange={(e) => setCurrentNotes(e.target.value)} rows="6" className={styles.notesTextarea} placeholder="Add your notes..." disabled={isSaving} />
+              <textarea value={currentNotes} onChange={(e) => setCurrentNotes(e.target.value)} rows="6" className={styles.notesTextarea} placeholder="Add your notes about this lead..." disabled={isSaving} />
             ) : (
               <div className={styles.notesDisplay} onClick={() => setIsEditingNotes(true)} title="Click to edit notes">{currentNotes || <span className={styles.placeholderText}>Click to add notes...</span>}</div>
             )}
@@ -203,7 +228,7 @@ function LeadDetailView({ lead, onClose, onUpdateLead, onDeleteLead }) {
           <button 
             onClick={handleSaveChanges} 
             className={`${styles.footerButton} ${styles.saveBtn}`} 
-            disabled={isSaving || isDeleting || (!isEditingNotes && currentStatus === (lead.user_status || 'New') && currentNotes === (lead.user_notes || '')) } 
+            disabled={isSaving || isDeleting || (currentStatus === (lead.user_status || 'New') && currentNotes === (lead.user_notes || '')) } 
           >
             {isSaving ? 'Saving...' : 'Save Changes'}
           </button>

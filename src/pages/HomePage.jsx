@@ -190,6 +190,7 @@ function HomePage() {
       address: placeToSave.address,
       phone: placeToSave.phone_number,
       website: placeToSave.website,
+      photo_url: placeToSave.photo_url,
     };
     console.log("Payload for saving lead:", payload);
 
