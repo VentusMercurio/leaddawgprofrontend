@@ -240,3 +240,72 @@
 .actionLink:hover {
     text-decoration: underline;
 }
+
+.statusAndActions {
+  /* ... existing styles ... */
+  align-items: flex-end; /* Align items to the end (right for LTR) */
+}
+
+.pitchToggleButton {
+  background-color: var(--accent-color);
+  color: #111;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  margin-top: 8px; /* Space below status dropdown */
+  white-space: nowrap;
+}
+.pitchToggleButton:hover {
+  background-color: var(--accent-hover-color);
+}
+
+.pitchTemplateSection {
+  margin-top: 25px;
+  padding-top: 20px;
+  border-top: 1px solid var(--border-color);
+}
+
+.pitchTemplateSection h4 {
+  font-size: 1.1rem;
+  margin-bottom: 10px;
+  color: rgba(255,255,255,0.9);
+}
+
+.pitchTextarea {
+  width: 100%;
+  padding: 12px;
+  border-radius: 6px;
+  border: 1px solid #444;
+  background-color: #2a2a2e;
+  color: var(--text-color);
+  font-size: 0.9rem;
+  line-height: 1.6;
+  min-height: 250px; /* Good height for an email */
+  resize: vertical;
+  font-family: inherit;
+  margin-bottom: 10px;
+}
+.pitchTextarea:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+}
+
+.copyPitchButton {
+  padding: 10px 18px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  border-radius: 6px;
+  cursor: pointer;
+  background-color: var(--success-color); /* Green for copy */
+  color: white;
+  border: none;
+  transition: background-color 0.2s ease;
+}
+.copyPitchButton:hover {
+  background-color: #1e7e34; /* Darker green */
+}
