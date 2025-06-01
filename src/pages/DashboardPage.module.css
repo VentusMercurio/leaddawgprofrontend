@@ -13,12 +13,91 @@
   margin: 30px auto;
   padding: 20px;
   color: var(--text-color);
+  background-color: #18181b; /* Example dark background, adjust if needed or if globally set */
+                               /* Ribbons need a background to show against */
+  position: relative;       /* Essential for positioning pseudo-elements */
+  overflow: hidden;         /* Essential to clip the ribbons */
+  border-radius: 8px;       /* Optional: if you want rounded corners for the container and ribbons clipping */
+  z-index: 0;               /* Establish a stacking context */
 }
+
+/* New Ribbon Effects for Dashboard Container */
+.dashboardContainer::before,
+.dashboardContainer::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 200%; /* Wider than container to allow for sweep and rotation */
+  height: 150px; /* Thickness of the ribbon - adjust as desired */
+  opacity: 0.15; /* Pronouncement of the ribbon - adjust for subtlety */
+  z-index: -1;  /* Position ribbons BEHIND the container's direct content but above its background-color */
+  pointer-events: none;
+  transform-origin: 0 0;
+}
+
+/* Magenta Ribbon */
+.dashboardContainer::before {
+  background: linear-gradient(
+    45deg,
+    rgba(224, 32, 224, 0),
+    rgba(224, 32, 224, 0.4) 25%, /* Adjusted opacity within gradient */
+    rgba(224, 32, 224, 0.4) 75%,
+    rgba(224, 32, 224, 0)
+  );
+  top: 10%; /* Vertical position */
+  transform: translateX(-100%) rotate(-15deg);
+  animation: flowDashboardMagentaRibbon 28s linear infinite;
+  animation-delay: -3s;
+}
+
+/* Teal Ribbon */
+.dashboardContainer::after {
+  background: linear-gradient(
+    -45deg,
+    rgba(0, 192, 192, 0),
+    rgba(0, 192, 192, 0.4) 25%, /* Adjusted opacity within gradient */
+    rgba(0, 192, 192, 0.4) 75%,
+    rgba(0, 192, 192, 0)
+  );
+  top: 60%; /* Different vertical position */
+  transform: translateX(-100%) rotate(12deg);
+  animation: flowDashboardTealRibbon 35s linear infinite;
+}
+
+@keyframes flowDashboardMagentaRibbon {
+  0% {
+    transform: translateX(-60%) translateY(-15%) rotate(-15deg);
+  }
+  50% {
+    transform: translateX(0%) translateY(0%) rotate(-18deg);
+  }
+  100% {
+    transform: translateX(60%) translateY(15%) rotate(-15deg);
+  }
+}
+
+@keyframes flowDashboardTealRibbon {
+  0% {
+    transform: translateX(-60%) translateY(15%) rotate(12deg);
+  }
+  50% {
+    transform: translateX(0%) translateY(0%) rotate(15deg);
+  }
+  100% {
+    transform: translateX(60%) translateY(-15%) rotate(12deg);
+  }
+}
+/* End of New Ribbon Effects */
+
 
 .dashboardHeader {
   margin-bottom: 30px;
   padding-bottom: 20px;
   border-bottom: 1px solid var(--border-color);
+  /* Ensure content is above ribbons if needed, though default flow should work */
+  position: relative; 
+  z-index: 1; 
 }
 
 .dashboardHeader h1 {
@@ -42,6 +121,8 @@
   background-color: var(--bg-surface);
   border-radius: 8px;
   border: 1px solid var(--border-color);
+  position: relative; /* Ensure content is above ribbons */
+  z-index: 1;
 }
 
 .errorMessage {
@@ -52,6 +133,8 @@
   border-radius: 6px;
   margin-bottom: 20px;
   text-align: center;
+  position: relative; /* Ensure content is above ribbons */
+  z-index: 1;
 }
 
 .leadsTableContainer {
@@ -60,6 +143,8 @@
   padding: 20px;
   box-shadow: 0 5px 15px rgba(0,0,0,0.2);
   border: 1px solid var(--border-color);
+  position: relative; /* Ensure content is above ribbons */
+  z-index: 1;
 }
 
 .leadsTable {
@@ -122,14 +207,15 @@
   pointer-events: none; /* Prevent interaction while updating */
 }
 
-.dashboardHeader {
+/* This duplicate .dashboardHeader rule was in your original, I'll keep the one above this section */
+/* .dashboardHeader {
   margin-bottom: 30px;
   padding-bottom: 20px;
   border-bottom: 1px solid var(--border-color);
-  display: flex; /* ADDED for button alignment */
-  justify-content: space-between; /* ADDED */
-  align-items: center; /* ADDED */
-}
+  display: flex; 
+  justify-content: space-between; 
+  align-items: center; 
+} */
 .dashboardHeader > div { /* Allow h1 and p to stack */
     flex-grow: 1;
 }
