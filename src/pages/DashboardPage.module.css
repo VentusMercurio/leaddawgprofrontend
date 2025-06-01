@@ -121,3 +121,32 @@
   opacity: 0.6;
   pointer-events: none; /* Prevent interaction while updating */
 }
+
+.dashboardHeader {
+  margin-bottom: 30px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid var(--border-color);
+  display: flex; /* ADDED for button alignment */
+  justify-content: space-between; /* ADDED */
+  align-items: center; /* ADDED */
+}
+.dashboardHeader > div { /* Allow h1 and p to stack */
+    flex-grow: 1;
+}
+
+.generalPitchButton {
+  background-color: var(--accent-color);
+  color: #111;
+  border: none;
+  padding: 10px 18px;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  white-space: nowrap; /* Prevent text wrapping */
+  flex-shrink: 0; /* Prevent button from shrinking */
+}
+.generalPitchButton:hover {
+  background-color: var(--accent-hover-color);
+}

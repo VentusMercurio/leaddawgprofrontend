@@ -1,10 +1,11 @@
 // src/pages/DashboardPage.jsx
-import React, { useState, useEffect, useCallback, useMemo } from 'react'; // Added useMemo
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useAuth } from '../context/AuthContext';
 import axios from 'axios';
 import styles from './DashboardPage.module.css';
 import { useNavigate } from 'react-router-dom';
-import LeadDetailView from '../components/LeadDetailView'; // Import the new full-screen view
+import LeadDetailView from '../components/LeadDetailView'; 
+import GeneralPitchModal from '../components/GeneralPitchModal'; // <<< IMPORTED
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5002';
 const STATUS_OPTIONS = ["New", "Contacted", "Followed Up", "Interested", "Booked", "Not Interested", "Pending"];
@@ -15,13 +16,12 @@ function DashboardPage() {
   const [savedLeads, setSavedLeads] = useState([]);
   const [isLoadingLeads, setIsLoadingLeads] = useState(false);
   const [error, setError] = useState('');
-
-  // --- State for Full-Screen Detail View ---
-  const [isDetailViewOpen, setIsDetailViewOpen] = useState(false); // Renamed from isModalOpen
-  const [selectedLeadForDetail, setSelectedLeadForDetail] = useState(null); // Renamed
-
-  // --- State for Dashboard Search/Filter ---
+  const [isDetailViewOpen, setIsDetailViewOpen] = useState(false);
+  const [selectedLeadForDetail, setSelectedLeadForDetail] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
+
+  // --- NEW State for General Pitch Modal ---
+  const [isGeneralPitchModalOpen, setIsGeneralPitchModalOpen] = useState(false);
 
   const fetchSavedLeads = useCallback(async () => {
     if (!isLoggedIn) return;
@@ -47,20 +47,17 @@ function DashboardPage() {
     setSavedLeads(prevLeads => prevLeads.map(lead => lead.id === leadId ? { ...lead, user_status: newStatus, _isUpdating: true } : lead ));
     try {
       const response = await axios.put(`${API_BASE_URL}/api/leads/${leadId}`, { user_status: newStatus }, { withCredentials: true });
-      // Update with the fresh data from the server, including updated_at
       setSavedLeads(prevLeads => prevLeads.map(lead => lead.id === leadId ? { ...response.data.lead, _isUpdating: false } : lead ));
-      // Also update selectedLeadForDetail if it's the one being edited in the detail view
       if (selectedLeadForDetail && selectedLeadForDetail.id === leadId) {
         setSelectedLeadForDetail(prev => ({...prev, ...response.data.lead}));
       }
     } catch (err) {
       console.error("Error updating lead status:", err);
       setError(`Failed to update status for lead ID ${leadId}.`);
-      setSavedLeads(originalLeads); // Revert on error
+      setSavedLeads(originalLeads);
     }
   };
 
-  // Renamed handlers for clarity
   const handleOpenDetailView = (lead) => {
     setSelectedLeadForDetail(lead);
     setIsDetailViewOpen(true);
@@ -68,7 +65,6 @@ function DashboardPage() {
 
   const handleCloseDetailView = () => {
     setIsDetailViewOpen(false);
-    // setSelectedLeadForDetail(null); // Keep selectedLeadForDetail for smoother transitions, or clear it
   };
 
   const handleUpdateLeadDetails = async (leadId, updates) => {
@@ -78,9 +74,8 @@ function DashboardPage() {
         const updatedLeadFromServer = response.data.lead;
         setSavedLeads(prevLeads => prevLeads.map(l => l.id === leadId ? updatedLeadFromServer : l));
         if (selectedLeadForDetail && selectedLeadForDetail.id === leadId) {
-          setSelectedLeadForDetail(updatedLeadFromServer); // Update the state for the detail view
+          setSelectedLeadForDetail(updatedLeadFromServer);
         }
-        // alert("Lead details updated!"); // Or a more subtle notification
         return true; 
       }
     } catch (err) {
@@ -95,8 +90,7 @@ function DashboardPage() {
     try {
       await axios.delete(`${API_BASE_URL}/api/leads/${leadId}`, { withCredentials: true });
       setSavedLeads(prevLeads => prevLeads.filter(l => l.id !== leadId));
-      handleCloseDetailView(); // Close detail view if the shown lead was deleted
-      // alert("Lead deleted!");
+      handleCloseDetailView(); 
       return true;
     } catch (err) {
       console.error("Error deleting lead:", err);
@@ -106,7 +100,6 @@ function DashboardPage() {
     return false;
   };
 
-  // Memoized filtered leads for dashboard search
   const filteredLeads = useMemo(() => {
     if (!searchTerm.trim()) return savedLeads;
     const lowerSearchTerm = searchTerm.toLowerCase();
@@ -124,8 +117,17 @@ function DashboardPage() {
   return (
     <div className={styles.dashboardContainer}>
       <header className={styles.dashboardHeader}>
-        <h1>My Saved Leads</h1>
-        <p>Manage your prospects and track your outreach. ({filteredLeads.length} matching / {savedLeads.length} total)</p>
+        <div> {/* Wrapper for title and subtitle */}
+          <h1>Lead Dashboard</h1>
+          <p>Manage your prospects and track your outreach. ({filteredLeads.length} matching / {savedLeads.length} total)</p>
+        </div>
+        {/* --- BUTTON TO OPEN GENERAL PITCH MODAL --- */}
+        <button 
+            onClick={() => setIsGeneralPitchModalOpen(true)}
+            className={styles.generalPitchButton} // Ensure this class is defined in DashboardPage.module.css
+        >
+            Edit My Pitch Template
+        </button>
       </header>
 
       <div className={styles.filterControls}>
@@ -136,7 +138,6 @@ function DashboardPage() {
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
         />
-        {/* Add Status Filter Dropdown here later */}
       </div>
 
       {isLoadingLeads && <p className={styles.loadingMessage}>Fetching your leads...</p>}
@@ -170,26 +171,16 @@ function DashboardPage() {
                   <td>
                     <select 
                       value={lead.user_status} 
-                      onChange={(e) => {
-                        e.stopPropagation(); // Prevent row click when changing status
-                        handleStatusChangeOnTable(lead.id, e.target.value);
-                      }}
-                      onClick={(e) => e.stopPropagation()} // Also here, just in case
+                      onChange={(e) => { e.stopPropagation(); handleStatusChangeOnTable(lead.id, e.target.value);}}
+                      onClick={(e) => e.stopPropagation()} 
                       className={styles.statusSelect}
                       disabled={lead._isUpdating}
                     >
-                      {STATUS_OPTIONS.map(status => (
-                        <option key={status} value={status}>{status}</option>
-                      ))}
+                      {STATUS_OPTIONS.map(status => (<option key={status} value={status}>{status}</option>))}
                     </select>
                   </td>
                   <td>
-                    <button 
-                      className={styles.actionButton} 
-                      onClick={() => handleOpenDetailView(lead)}
-                    >
-                      Details
-                    </button>
+                    <button className={styles.actionButton} onClick={() => handleOpenDetailView(lead)}>Details</button>
                   </td>
                 </tr>
               ))}
@@ -198,16 +189,20 @@ function DashboardPage() {
         </div>
       )}
 
-      {/* Use LeadDetailView and pass renamed state/handlers */}
       {isDetailViewOpen && selectedLeadForDetail && (
         <LeadDetailView
           lead={selectedLeadForDetail}
-          // No need for isOpen prop as conditional rendering handles it
           onClose={handleCloseDetailView}
-          onUpdateLead={handleUpdateLeadDetails} // Pass the renamed handler
-          onDeleteLead={handleDeleteLead}       // Pass the renamed handler
+          onUpdateLead={handleUpdateLeadDetails}
+          onDeleteLead={handleDeleteLead}
         />
       )}
+
+      {/* --- RENDER THE GENERAL PITCH MODAL --- */}
+      <GeneralPitchModal 
+        isOpen={isGeneralPitchModalOpen}
+        onClose={() => setIsGeneralPitchModalOpen(false)}
+      />
     </div>
   );
 }
